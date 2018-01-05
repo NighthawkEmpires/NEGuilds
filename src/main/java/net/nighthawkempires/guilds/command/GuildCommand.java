@@ -48,7 +48,7 @@ public class GuildCommand implements CommandExecutor {
                 Lang.CMD_NAME.getCommandName("Guilds" + ChatColor.DARK_GRAY + " - Page" + ChatColor.GRAY + ": " + ChatColor.GOLD + "2" + ChatColor.DARK_GRAY + "/" + ChatColor.GOLD + "3"),
                 Lang.FOOTER.getMessage(),
                 Lang.CMD_HELP.getCommand("g", "disband <guild>", "Disband a guild"),//
-                Lang.CMD_HELP.getCommand("g", "color", "Open GuildModel Color Shop"),//
+                Lang.CMD_HELP.getCommand("g", "color", "Open Guild Color Shop"),//
                 Lang.CMD_HELP.getCommand("g", "home <guild>", "Teleport to a guild's home"),//
                 Lang.CMD_HELP.getCommand("g", "ally [guild]", "Ally another guild"),
                 Lang.CMD_HELP.getCommand("g", "truce [guild]", "Truce another guild"),
@@ -91,7 +91,7 @@ public class GuildCommand implements CommandExecutor {
                 Lang.CMD_NAME.getCommandName("Guilds" + ChatColor.DARK_GRAY + " - Page" + ChatColor.GRAY + ": " + ChatColor.GOLD + "2" + ChatColor.DARK_GRAY + "/" + ChatColor.GOLD + "3"),
                 Lang.FOOTER.getMessage(),
                 Lang.CMD_HELP.getCommand("g", "disband", "Disband a guild"),
-                Lang.CMD_HELP.getCommand("g", "color", "Open GuildModel Color Shop"),
+                Lang.CMD_HELP.getCommand("g", "color", "Open Guild Color Shop"),
                 Lang.CMD_HELP.getCommand("g", "home", "Teleport to a guild's home"),
                 Lang.CMD_HELP.getCommand("g", "ally [guild]", "Ally another guild"),
                 Lang.CMD_HELP.getCommand("g", "truce [guild]", "Truce another guild"),
@@ -496,7 +496,7 @@ public class GuildCommand implements CommandExecutor {
                         return true;
                     }
 
-                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have opened GuildModel Color Shop."));
+                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have opened Guild Color Shop."));
                     player.openInventory(NEGuilds.getInventoryListener().inventoryGuildColor(player));
                 } else if (args[0].toLowerCase().equals("admin")) {
                     if (!player.hasPermission("ne.admin")) {
@@ -570,6 +570,11 @@ public class GuildCommand implements CommandExecutor {
                     String name = args[1];
                     if (name.length() > 15) {
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "That name is too long!"));
+                        return true;
+                    }
+
+                    if (NEGuilds.getGuildRegistry().containsBannedWord(name)) {
+                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "That name contains a banned word!"));
                         return true;
                     }
 

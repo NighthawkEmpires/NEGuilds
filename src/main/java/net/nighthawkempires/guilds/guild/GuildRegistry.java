@@ -1,15 +1,39 @@
 package net.nighthawkempires.guilds.guild;
 
+import com.google.common.collect.ImmutableList;
 import net.nighthawkempires.core.NECore;
 import net.nighthawkempires.guilds.NEGuilds;
 import net.nighthawkempires.guilds.data.AbstractGuildsDataRegistry;
 import net.nighthawkempires.guilds.data.datasection.DataSection;
 
-import java.util.UUID;
+import java.util.*;
 
 public class GuildRegistry extends AbstractGuildsDataRegistry<GuildModel> {
     private static final boolean SAVE_PRETTY = true;
     private static final String FILE_NAME = "guilds";
+    private static final ImmutableList<String> BANNED_WORDS;
+
+    static {
+        // Manual Blacklist
+        List<String> banned = new ArrayList<>();
+        banned.add("Pussy");
+        banned.add("Cock");
+        banned.add("Fuck");
+        banned.add("Shit");
+        banned.add("Ass");
+        banned.add("Dick");
+        banned.add("Penis");
+        banned.add("Vagina");
+        banned.add("Cunt");
+        banned.add("Bitch");
+        banned.add("Nigger");
+        banned.add("Phil");
+        banned.add("Staff");
+        banned.add("Server");
+        banned.add("Console");
+        banned.add("Disowned");
+        BANNED_WORDS = ImmutableList.copyOf(banned);
+    }
 
     public GuildRegistry() {
         super(SAVE_PRETTY);
@@ -63,5 +87,19 @@ public class GuildRegistry extends AbstractGuildsDataRegistry<GuildModel> {
 
     public boolean guildExists(String name) {
         return getGuild(name) != null;
+    }
+
+    public ImmutableList<String> getBannedWords() {
+        return BANNED_WORDS;
+    }
+
+    public boolean containsBannedWord(String str) {
+        for (String banned : BANNED_WORDS) {
+            if (str.toLowerCase().contains(banned.toLowerCase())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
