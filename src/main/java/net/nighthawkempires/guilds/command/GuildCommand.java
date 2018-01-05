@@ -1,12 +1,11 @@
 package net.nighthawkempires.guilds.command;
 
 import com.google.common.collect.Lists;
-import com.sun.org.apache.regexp.internal.RE;
 import net.nighthawkempires.core.language.Lang;
 import net.nighthawkempires.core.utils.MathUtil;
 import net.nighthawkempires.essentials.NEEssentials;
 import net.nighthawkempires.guilds.NEGuilds;
-import net.nighthawkempires.guilds.guild.Guild;
+import net.nighthawkempires.guilds.guild.GuildModel;
 import net.nighthawkempires.guilds.guild.rank.RankType;
 import net.nighthawkempires.guilds.guild.relation.RelationType;
 import net.nighthawkempires.guilds.user.User;
@@ -21,9 +20,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class GuildCommand implements CommandExecutor {
 
@@ -51,7 +48,7 @@ public class GuildCommand implements CommandExecutor {
                 Lang.CMD_NAME.getCommandName("Guilds" + ChatColor.DARK_GRAY + " - Page" + ChatColor.GRAY + ": " + ChatColor.GOLD + "2" + ChatColor.DARK_GRAY + "/" + ChatColor.GOLD + "3"),
                 Lang.FOOTER.getMessage(),
                 Lang.CMD_HELP.getCommand("g", "disband <guild>", "Disband a guild"),//
-                Lang.CMD_HELP.getCommand("g", "color", "Open Guild Color Shop"),//
+                Lang.CMD_HELP.getCommand("g", "color", "Open GuildModel Color Shop"),//
                 Lang.CMD_HELP.getCommand("g", "home <guild>", "Teleport to a guild's home"),//
                 Lang.CMD_HELP.getCommand("g", "ally [guild]", "Ally another guild"),
                 Lang.CMD_HELP.getCommand("g", "truce [guild]", "Truce another guild"),
@@ -94,7 +91,7 @@ public class GuildCommand implements CommandExecutor {
                 Lang.CMD_NAME.getCommandName("Guilds" + ChatColor.DARK_GRAY + " - Page" + ChatColor.GRAY + ": " + ChatColor.GOLD + "2" + ChatColor.DARK_GRAY + "/" + ChatColor.GOLD + "3"),
                 Lang.FOOTER.getMessage(),
                 Lang.CMD_HELP.getCommand("g", "disband", "Disband a guild"),
-                Lang.CMD_HELP.getCommand("g", "color", "Open Guild Color Shop"),
+                Lang.CMD_HELP.getCommand("g", "color", "Open GuildModel Color Shop"),
                 Lang.CMD_HELP.getCommand("g", "home", "Teleport to a guild's home"),
                 Lang.CMD_HELP.getCommand("g", "ally [guild]", "Ally another guild"),
                 Lang.CMD_HELP.getCommand("g", "truce [guild]", "Truce another guild"),
@@ -130,7 +127,7 @@ public class GuildCommand implements CommandExecutor {
             if (user.getGuild() == null) {
                 inGuild = false;
             }
-            Guild guild = user.getGuild();
+            GuildModel guild = user.getGuild();
             RankType rank = user.getType();
             if (args.length == 0) {
                 if (sender.hasPermission("ne.admin")) {
@@ -162,7 +159,7 @@ public class GuildCommand implements CommandExecutor {
                         return true;
                     }
 
-                    for (Guild guilds : NEGuilds.getGuildManager().getGuilds()) {
+                    for (GuildModel guilds : NEGuilds.getGuildRegistry().getRegistered()) {
                         if (guilds.getTerritory().contains(chunk)) {
                             int power = 0;
                             for (UUID uuid : user.getGuild().getMembers()) {
@@ -235,7 +232,8 @@ public class GuildCommand implements CommandExecutor {
 
                     StringBuilder builder = new StringBuilder();
                     if (!user.getGuild().getRelations().keySet().isEmpty()) {
-                        for (Guild guilds : user.getGuild().getRelations().keySet()) {
+                        for (UUID guildId : user.getGuild().getRelations().keySet()) {
+                            GuildModel guilds = NEGuilds.getGuildRegistry().getGuild(guildId);
                             if (user.getGuild().isAlly(guilds)) {
                                 builder.append(ChatColor.BLUE).append(guilds.getName()).append(ChatColor.DARK_GRAY).append(", ");
                             }
@@ -248,16 +246,17 @@ public class GuildCommand implements CommandExecutor {
                     }
                     String allies = builder.substring(0, builder.length() - 2);
                     builder = new StringBuilder();
-                    List<Guild> enemiee = Lists.newArrayList();
+                    List<GuildModel> enemiee = Lists.newArrayList();
                     if (!user.getGuild().getRelations().keySet().isEmpty()) {
-                        for (Guild guilds : user.getGuild().getRelations().keySet()) {
+                        for (UUID guildId : user.getGuild().getRelations().keySet()) {
+                            GuildModel guilds = NEGuilds.getGuildRegistry().getGuild(guildId);
                             if (user.getGuild().isEnemy(guilds)) {
                                 builder.append(ChatColor.RED).append(guilds.getName()).append(ChatColor.DARK_GRAY).append(", ");
                                 enemiee.add(guilds);
                             }
                         }
 
-                        for (Guild guilds : NEGuilds.getGuildManager().getGuilds()) {
+                        for (GuildModel guilds : NEGuilds.getGuildRegistry().getRegistered()) {
                             if (user.getGuild().isEnemy(guilds)) {
                                 if (!enemiee.contains(guilds))
                                     builder.append(ChatColor.RED).append(guilds.getName()).append(ChatColor.DARK_GRAY).append(", ");
@@ -421,7 +420,7 @@ public class GuildCommand implements CommandExecutor {
                             user.setType(null);
                             user.setGuild(null);
                             player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "The guild you were in has been disbanded since you were the last member of the guild.."));
-                            NEGuilds.getGuildManager().deleteGuild(guild.getUUID());
+                            NEGuilds.getGuildRegistry().deleteGuild(guild.getUUID());
                         }
                         return true;
                     }
@@ -497,7 +496,7 @@ public class GuildCommand implements CommandExecutor {
                         return true;
                     }
 
-                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have opened Guild Color Shop."));
+                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have opened GuildModel Color Shop."));
                     player.openInventory(NEGuilds.getInventoryListener().inventoryGuildColor(player));
                 } else if (args[0].toLowerCase().equals("admin")) {
                     if (!player.hasPermission("ne.admin")) {
@@ -543,7 +542,7 @@ public class GuildCommand implements CommandExecutor {
                     user.setType(null);
                     user.setGuild(null);
                     player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You disbanded the guild you were in!"));
-                    NEGuilds.getGuildManager().deleteGuild(guild.getUUID());
+                    NEGuilds.getGuildRegistry().deleteGuild(guild.getUUID());
                 } else if (args[0].toLowerCase().equals("desc") || args[0].toLowerCase().equals("description")) {
                     if (!inGuild || guild == null) {
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're not currently in any guild!"));
@@ -574,17 +573,13 @@ public class GuildCommand implements CommandExecutor {
                         return true;
                     }
 
-                    if (NEGuilds.getGuildManager().guildExists(name)) {
+                    if (NEGuilds.getGuildRegistry().guildExists(name)) {
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "A guild with that name already exists!"));
                         return true;
                     }
 
-                    UUID uuid = UUID.randomUUID();
-                    NEGuilds.getGuildManager().createGuild(new Guild(uuid), name, player.getUniqueId());
-                    if (!NEGuilds.getGuildManager().guildLoaded(uuid)) {
-                        NEGuilds.getGuildManager().loadGuild(new Guild(uuid));
-                    }
-                    user.setGuild(NEGuilds.getGuildManager().getGuild(uuid));
+                    UUID uuid = NEGuilds.getGuildRegistry().createGuild(name, player.getUniqueId());
+                    user.setGuild(NEGuilds.getGuildRegistry().getGuild(uuid));
                     user.setType(RankType.LEADER);
                     player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have created a guild by the name of " + user.getGuild().getColor() + user.getGuild().getName() + ChatColor.GRAY + "."));
                     for (Player players : Bukkit.getOnlinePlayers()) {
@@ -632,12 +627,12 @@ public class GuildCommand implements CommandExecutor {
                         return true;
                     }
                     String name = args[1];
-                    if (!NEGuilds.getGuildManager().guildExists(name)) {
+                    if (!NEGuilds.getGuildRegistry().guildExists(name)) {
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "A guild with that name does not exists!"));
                         return true;
                     }
 
-                    Guild guildd = NEGuilds.getGuildManager().getGuild(name);
+                    GuildModel guildd = NEGuilds.getGuildRegistry().getGuild(name);
                     if (guildd == null) {
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "That guild does not exist!"));
                         return true;
@@ -716,9 +711,9 @@ public class GuildCommand implements CommandExecutor {
                         }
                     }
                 } else if (args[0].toLowerCase().equals("show") || args[0].toLowerCase().equals("info")) {
-                    Guild guildd = null;
-                    if (NEGuilds.getGuildManager().guildExists(args[1])) {
-                        guildd = NEGuilds.getGuildManager().getGuild(args[1]);
+                    GuildModel guildd = null;
+                    if (NEGuilds.getGuildRegistry().guildExists(args[1])) {
+                        guildd = NEGuilds.getGuildRegistry().getGuild(args[1]);
                     } else {
                         if (NEGuilds.getUserManager().userExists(Bukkit.getOfflinePlayer(args[1]).getUniqueId())) {
                             guildd = NEGuilds.getUserManager().getTempUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
@@ -741,7 +736,8 @@ public class GuildCommand implements CommandExecutor {
 
                     StringBuilder builder = new StringBuilder();
                     if (!guildd.getRelations().keySet().isEmpty()) {
-                        for (Guild guilds : guildd.getRelations().keySet()) {
+                        for (UUID guildsId : guildd.getRelations().keySet()) {
+                            GuildModel guilds = NEGuilds.getGuildRegistry().getGuild(guildsId);
                             if (guildd.isAlly(guilds)) {
                                 builder.append(ChatColor.BLUE).append(guilds.getName()).append(ChatColor.DARK_GRAY).append(", ");
                             }
@@ -754,16 +750,17 @@ public class GuildCommand implements CommandExecutor {
                     }
                     String allies = builder.substring(0, builder.length() - 2);
                     builder = new StringBuilder();
-                    List<Guild> enemiee = Lists.newArrayList();
+                    List<GuildModel> enemiee = Lists.newArrayList();
                     if (!guildd.getRelations().keySet().isEmpty()) {
-                        for (Guild guild1 : guildd.getRelations().keySet()) {
+                        for (UUID guild1Id : guildd.getRelations().keySet()) {
+                            GuildModel guild1 = NEGuilds.getGuildRegistry().getGuild(guild1Id);
                             if (guildd.isEnemy(guild1)) {
                                 enemiee.add(guild1);
                                 builder.append(ChatColor.RED).append(guild1.getName()).append(ChatColor.DARK_GRAY).append(", ");
                             }
                         }
 
-                        for (Guild guilds : NEGuilds.getGuildManager().getGuilds()) {
+                        for (GuildModel guilds : NEGuilds.getGuildRegistry().getRegistered()) {
                             if (guildd.isEnemy(guilds)) {
                                 if (!enemiee.contains(guilds))
                                     builder.append(ChatColor.RED).append(guilds.getName()).append(ChatColor.DARK_GRAY).append(", ");
@@ -911,7 +908,7 @@ public class GuildCommand implements CommandExecutor {
                         return true;
                     }
 
-                    if (NEGuilds.getGuildManager().guildExists(name)) {
+                    if (NEGuilds.getGuildRegistry().guildExists(name)) {
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "A guild with that name already exists!"));
                         return true;
                     }
@@ -931,9 +928,9 @@ public class GuildCommand implements CommandExecutor {
                         return true;
                     }
 
-                    Guild guildd = null;
-                    if (NEGuilds.getGuildManager().guildExists(args[1])) {
-                        guildd = NEGuilds.getGuildManager().getGuild(args[1]);
+                    GuildModel guildd = null;
+                    if (NEGuilds.getGuildRegistry().guildExists(args[1])) {
+                        guildd = NEGuilds.getGuildRegistry().getGuild(args[1]);
                     } else {
                         if (NEGuilds.getUserManager().userExists(Bukkit.getOfflinePlayer(args[1]).getUniqueId())) {
                             guildd = NEGuilds.getUserManager().getTempUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
@@ -960,16 +957,16 @@ public class GuildCommand implements CommandExecutor {
                     }
 
                     player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have disbanded guild " + guildd.getColor() + guildd.getName() + ChatColor.GRAY + "."));
-                    NEGuilds.getGuildManager().deleteGuild(guildd.getUUID());
+                    NEGuilds.getGuildRegistry().deleteGuild(guildd.getUUID());
                 } else if (args[0].toLowerCase().equals("home")) {
                     if (!player.hasPermission("ne.admin")) {
                         player.sendMessage(Lang.NO_PERM.getServerMessage());
                         return true;
                     }
 
-                    Guild guildd = null;
-                    if (NEGuilds.getGuildManager().guildExists(args[1])) {
-                        guildd = NEGuilds.getGuildManager().getGuild(args[1]);
+                    GuildModel guildd = null;
+                    if (NEGuilds.getGuildRegistry().guildExists(args[1])) {
+                        guildd = NEGuilds.getGuildRegistry().getGuild(args[1]);
                     } else {
                         if (NEGuilds.getUserManager().userExists(Bukkit.getOfflinePlayer(args[1]).getUniqueId())) {
                             guildd = NEGuilds.getUserManager().getTempUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
@@ -998,9 +995,9 @@ public class GuildCommand implements CommandExecutor {
                         return true;
                     }
 
-                    Guild guildd = null;
-                    if (NEGuilds.getGuildManager().guildExists(args[1])) {
-                        guildd = NEGuilds.getGuildManager().getGuild(args[1]);
+                    GuildModel guildd = null;
+                    if (NEGuilds.getGuildRegistry().guildExists(args[1])) {
+                        guildd = NEGuilds.getGuildRegistry().getGuild(args[1]);
                     } else {
                         if (NEGuilds.getUserManager().userExists(Bukkit.getOfflinePlayer(args[1]).getUniqueId())) {
                             guildd = NEGuilds.getUserManager().getTempUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
@@ -1026,7 +1023,7 @@ public class GuildCommand implements CommandExecutor {
                             return true;
                         }
 
-                        guild.getRelations().put(guildd, RelationType.ALLY);
+                        guild.getRelations().put(guildd.getUUID(), RelationType.ALLY);
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have accepted " + guildd.getColor() + guildd.getName() + "'s " + ChatColor.GRAY + "wish to be allies."));
                         for (Player players : Bukkit.getOnlinePlayers()) {
                             if (guild.getMembers().contains(players.getUniqueId())) {
@@ -1046,7 +1043,7 @@ public class GuildCommand implements CommandExecutor {
                             return true;
                         }
 
-                        guild.getRelations().put(guildd, RelationType.ALLY);
+                        guild.getRelations().put(guildd.getUUID(), RelationType.ALLY);
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have requested to be allies with  " + guildd.getColor() + guildd.getName() + ChatColor.GRAY + "."));
                         for (Player players : Bukkit.getOnlinePlayers()) {
                             if (guild.getMembers().contains(players.getUniqueId())) {
@@ -1069,9 +1066,9 @@ public class GuildCommand implements CommandExecutor {
                         return true;
                     }
 
-                    Guild guildd = null;
-                    if (NEGuilds.getGuildManager().guildExists(args[1])) {
-                        guildd = NEGuilds.getGuildManager().getGuild(args[1]);
+                    GuildModel guildd = null;
+                    if (NEGuilds.getGuildRegistry().guildExists(args[1])) {
+                        guildd = NEGuilds.getGuildRegistry().getGuild(args[1]);
                     } else {
                         if (NEGuilds.getUserManager().userExists(Bukkit.getOfflinePlayer(args[1]).getUniqueId())) {
                             guildd = NEGuilds.getUserManager().getTempUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
@@ -1097,7 +1094,7 @@ public class GuildCommand implements CommandExecutor {
                             return true;
                         }
 
-                        guild.getRelations().put(guildd, RelationType.TRUCE);
+                        guild.getRelations().put(guildd.getUUID(), RelationType.TRUCE);
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have accepted " + guildd.getColor() + guildd.getName() + "'s " + ChatColor.GRAY + "wish to be truced."));
                         for (Player players : Bukkit.getOnlinePlayers()) {
                             if (guild.getMembers().contains(players.getUniqueId())) {
@@ -1117,7 +1114,7 @@ public class GuildCommand implements CommandExecutor {
                             return true;
                         }
 
-                        guild.getRelations().put(guildd, RelationType.TRUCE);
+                        guild.getRelations().put(guildd.getUUID(), RelationType.TRUCE);
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have requested to be truced with  " + guildd.getColor() + guildd.getName() + ChatColor.GRAY + "."));
                         for (Player players : Bukkit.getOnlinePlayers()) {
                             if (guild.getMembers().contains(players.getUniqueId())) {
@@ -1140,9 +1137,9 @@ public class GuildCommand implements CommandExecutor {
                         return true;
                     }
 
-                    Guild guildd = null;
-                    if (NEGuilds.getGuildManager().guildExists(args[1])) {
-                        guildd = NEGuilds.getGuildManager().getGuild(args[1]);
+                    GuildModel guildd = null;
+                    if (NEGuilds.getGuildRegistry().guildExists(args[1])) {
+                        guildd = NEGuilds.getGuildRegistry().getGuild(args[1]);
                     } else {
                         if (NEGuilds.getUserManager().userExists(Bukkit.getOfflinePlayer(args[1]).getUniqueId())) {
                             guildd = NEGuilds.getUserManager().getTempUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
@@ -1168,7 +1165,7 @@ public class GuildCommand implements CommandExecutor {
                             return true;
                         }
 
-                        guild.getRelations().put(guildd, RelationType.NEUTRAL);
+                        guild.getRelations().put(guildd.getUUID(), RelationType.NEUTRAL);
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have accepted " + guildd.getColor() + guildd.getName() + "'s " + ChatColor.GRAY + "wish to be neutral."));
                         for (Player players : Bukkit.getOnlinePlayers()) {
                             if (guild.getMembers().contains(players.getUniqueId())) {
@@ -1188,7 +1185,7 @@ public class GuildCommand implements CommandExecutor {
                             return true;
                         }
 
-                        guild.getRelations().put(guildd, RelationType.NEUTRAL);
+                        guild.getRelations().put(guildd.getUUID(), RelationType.NEUTRAL);
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have requested to be neutral with  " + guildd.getColor() + guildd.getName() + ChatColor.GRAY + "."));
                         for (Player players : Bukkit.getOnlinePlayers()) {
                             if (guild.getMembers().contains(players.getUniqueId())) {
@@ -1211,9 +1208,9 @@ public class GuildCommand implements CommandExecutor {
                         return true;
                     }
 
-                    Guild guildd = null;
-                    if (NEGuilds.getGuildManager().guildExists(args[1])) {
-                        guildd = NEGuilds.getGuildManager().getGuild(args[1]);
+                    GuildModel guildd = null;
+                    if (NEGuilds.getGuildRegistry().guildExists(args[1])) {
+                        guildd = NEGuilds.getGuildRegistry().getGuild(args[1]);
                     } else {
                         if (NEGuilds.getUserManager().userExists(Bukkit.getOfflinePlayer(args[1]).getUniqueId())) {
                             guildd = NEGuilds.getUserManager().getTempUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
@@ -1237,7 +1234,7 @@ public class GuildCommand implements CommandExecutor {
                             return true;
                         }
 
-                        guild.getRelations().put(guildd, RelationType.ENEMY);
+                        guild.getRelations().put(guildd.getUUID(), RelationType.ENEMY);
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have enemied " + guildd.getColor() + guildd.getName() + ChatColor.GRAY + "."));
                         for (Player players : Bukkit.getOnlinePlayers()) {
                             if (guild.getMembers().contains(players.getUniqueId())) {
@@ -1510,9 +1507,9 @@ public class GuildCommand implements CommandExecutor {
                         return true;
                     }
 
-                    Guild guildd = null;
-                    if (NEGuilds.getGuildManager().guildExists(args[2])) {
-                        guildd = NEGuilds.getGuildManager().getGuild(args[2]);
+                    GuildModel guildd = null;
+                    if (NEGuilds.getGuildRegistry().guildExists(args[2])) {
+                        guildd = NEGuilds.getGuildRegistry().getGuild(args[2]);
                     } else {
                         if (NEGuilds.getUserManager().userExists(Bukkit.getOfflinePlayer(args[2]).getUniqueId())) {
                             guildd = NEGuilds.getUserManager().getTempUser(Bukkit.getOfflinePlayer(args[2]).getUniqueId()).getGuild();
@@ -1530,7 +1527,7 @@ public class GuildCommand implements CommandExecutor {
                         return true;
                     }
 
-                    if (NEGuilds.getGuildManager().guildExists(name)) {
+                    if (NEGuilds.getGuildRegistry().guildExists(name)) {
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "A guild with that name already exists!"));
                         return true;
                     }
@@ -1672,7 +1669,7 @@ public class GuildCommand implements CommandExecutor {
     }
 
     private int getTotalPages() {
-        List<Guild> guilds = NEGuilds.getGuildManager().getGuilds();
+        Collection<GuildModel> guilds = NEGuilds.getGuildRegistry().getRegistered();
 
         int totalPages = (int) Math.ceil((double) guilds.size() / 10);
         return totalPages;
@@ -1682,7 +1679,7 @@ public class GuildCommand implements CommandExecutor {
         int diplayPage = page;
         page = page - 1;
 
-        List<Guild> guilds = NEGuilds.getGuildManager().getGuilds();
+        Collection<GuildModel> guilds = NEGuilds.getGuildRegistry().getRegistered();
 
         int totalPages = getTotalPages();
 
@@ -1696,7 +1693,7 @@ public class GuildCommand implements CommandExecutor {
         }
         List<Integer> members = Lists.newArrayList();
 
-        for (Guild guild : guilds) {
+        for (GuildModel guild : guilds) {
             members.add(guild.getMembers().size());
         }
 
@@ -1715,9 +1712,9 @@ public class GuildCommand implements CommandExecutor {
         };
         player.sendMessage(help);
         int pos = 1;
-        List<Guild> used = Lists.newArrayList();
+        List<GuildModel> used = Lists.newArrayList();
         for (Integer integer : memberCount) {
-            for (Guild guild : guilds) {
+            for (GuildModel guild : guilds) {
                 if (!used.contains(guild)) {
                     if (guild.getMembers().size() == integer) {
                         StringBuilder spacer = new StringBuilder();

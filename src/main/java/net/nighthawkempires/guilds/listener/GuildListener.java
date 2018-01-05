@@ -4,9 +4,8 @@ import com.google.common.collect.Maps;
 import net.nighthawkempires.core.NECore;
 import net.nighthawkempires.core.events.UserDeathEvent;
 import net.nighthawkempires.core.language.Lang;
-import net.nighthawkempires.core.utils.MathUtil;
 import net.nighthawkempires.guilds.NEGuilds;
-import net.nighthawkempires.guilds.guild.Guild;
+import net.nighthawkempires.guilds.guild.GuildModel;
 import net.nighthawkempires.guilds.user.User;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
@@ -19,21 +18,15 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.inventory.ItemStack;
 
-import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
-
-import static org.bukkit.event.entity.EntityDamageEvent.DamageCause.ENTITY_ATTACK;
 
 public class GuildListener implements Listener {
 
-    private ConcurrentMap<Player, Guild> locationMap = Maps.newConcurrentMap();
+    private ConcurrentMap<Player, GuildModel> locationMap = Maps.newConcurrentMap();
 
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
@@ -41,7 +34,7 @@ public class GuildListener implements Listener {
         User user = NEGuilds.getUserManager().getUser(player.getUniqueId());
 
         Chunk chunk = player.getLocation().getChunk();
-        for (Guild guild : NEGuilds.getGuildManager().getGuildMap().values()) {
+        for (GuildModel guild : NEGuilds.getGuildRegistry().getRegistered()) {
             if (guild.getTerritory().contains(chunk)) {
                 if (user.getGuild() == null) {
                     event.setCancelled(true);
@@ -69,7 +62,7 @@ public class GuildListener implements Listener {
         Chunk chunk = player.getLocation().getChunk();
 
         boolean inTerritory = false;
-        for (Guild guild : NEGuilds.getGuildManager().getGuildMap().values()) {
+        for (GuildModel guild : NEGuilds.getGuildRegistry().getRegistered()) {
             if (guild.getTerritory().contains(chunk)) {
                 if (locationMap.containsKey(player) && locationMap.get(player) == guild) {
                 } else {
@@ -91,7 +84,7 @@ public class GuildListener implements Listener {
         User user = NEGuilds.getUserManager().getUser(player.getUniqueId());
         Chunk chunk = player.getLocation().getChunk();
 
-        for (Guild guild : NEGuilds.getGuildManager().getGuilds()) {
+        for (GuildModel guild : NEGuilds.getGuildRegistry().getRegistered()) {
             if (guild.getTerritory().contains(chunk)) {
                 if (user.getGuild() == null) {
                     player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're not allowed to build inside of " + guild.getColor() + guild.getName() + "'s " + ChatColor.RED + "territory."));
@@ -113,7 +106,7 @@ public class GuildListener implements Listener {
         User user = NEGuilds.getUserManager().getUser(player.getUniqueId());
         Chunk chunk = player.getLocation().getChunk();
 
-        for (Guild guild : NEGuilds.getGuildManager().getGuilds()) {
+        for (GuildModel guild : NEGuilds.getGuildRegistry().getRegistered()) {
             if (guild.getTerritory().contains(chunk)) {
                 if (user.getGuild() == null) {
                     player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're not allowed to build inside of " + guild.getColor() + guild.getName() + "'s " + ChatColor.RED + "territory."));
@@ -134,8 +127,8 @@ public class GuildListener implements Listener {
         Player player = event.getPlayer();
         User user = NEGuilds.getUserManager().getUser(player.getUniqueId());
 
-        if (event.getKiller() instanceof Player) {
-            Player killer = (Player) event.getKiller();
+        if (event.getEntityKiller() != null && event.getEntityKiller() instanceof Player) {
+            Player killer = (Player) event.getEntityKiller();
             User kuser = NEGuilds.getUserManager().getUser(killer.getUniqueId());
 
             if (user.getPower() == 0 || user.getPower() == 1) {
@@ -254,7 +247,7 @@ public class GuildListener implements Listener {
         User user = NEGuilds.getUserManager().getUser(player.getUniqueId());
         Chunk chunk = player.getLocation().getChunk();
 
-        for (Guild guild : NEGuilds.getGuildManager().getGuilds()) {
+        for (GuildModel guild : NEGuilds.getGuildRegistry().getRegistered()) {
             if (guild.getTerritory().contains(chunk)) {
                 if (user.getGuild() != guild) {
                     if (user.getGuild().isEnemy(guild) || guild.isEnemy(user.getGuild())) {

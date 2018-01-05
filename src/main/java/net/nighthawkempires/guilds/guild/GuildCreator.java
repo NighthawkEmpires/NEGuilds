@@ -10,10 +10,10 @@ import java.util.UUID;
 
 public class GuildCreator {
 
-    private Guild guild;
+    private GuildModel guild;
     private FileManager fileManager;
 
-    public GuildCreator(Guild guild) {
+    public GuildCreator(GuildModel guild) {
         this.guild = guild;
         this.fileManager = NECore.getFileManager();
 

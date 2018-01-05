@@ -26,17 +26,28 @@
             <url>http://144.217.67.194:8081/artifactory/nighthawkempires</url>
         </repository>
         <repository>
-            <id>spigot-repo</id>
-            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+            <id>spigot-releases</id>
+            <url>https://hub.spigotmc.org/nexus/content/repositories/public</url>
         </repository>
     </repositories>
 
     <dependencies>
         <dependency>
+            <groupId>net.nighthawkempires</groupId>
+            <artifactId>core</artifactId>
+            <version>1.0_a</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.nighthawkempires</groupId>
+            <artifactId>essentials</artifactId>
+            <version>1.0_a</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.spigotmc</groupId>
-            <artifactId>spigot</artifactId>
+            <artifactId>spigot-api</artifactId>
             <version>1.12.2-R0.1-SNAPSHOT</version>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 

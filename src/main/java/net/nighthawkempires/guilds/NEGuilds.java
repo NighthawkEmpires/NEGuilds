@@ -4,7 +4,7 @@ import net.nighthawkempires.core.NECore;
 import net.nighthawkempires.core.server.Server;
 import net.nighthawkempires.guilds.command.GuildCommand;
 import net.nighthawkempires.guilds.data.GuildData;
-import net.nighthawkempires.guilds.guild.GuildManager;
+import net.nighthawkempires.guilds.guild.GuildRegistry;
 import net.nighthawkempires.guilds.guild.GuildTag;
 import net.nighthawkempires.guilds.listener.GuildListener;
 import net.nighthawkempires.guilds.listener.InventoryListener;
@@ -24,7 +24,7 @@ public class NEGuilds extends JavaPlugin {
     private static Plugin plugin;
     private static NEGuilds instance;
 
-    private static GuildManager guildManager;
+    private static GuildRegistry guildRegistry;
     private static PluginManager pluginManager;
     private static UserManager userManager;
 
@@ -41,7 +41,7 @@ public class NEGuilds extends JavaPlugin {
         plugin = this;
         instance = this;
 
-        guildManager = new GuildManager();
+        guildRegistry = new GuildRegistry();
         pluginManager = Bukkit.getPluginManager();
         userManager = new UserManager();
 
@@ -63,8 +63,6 @@ public class NEGuilds extends JavaPlugin {
                 }
             }
         }, 6000, 6000);
-
-        getGuildManager().loadGuilds();
 
         registerCommands();
         registerListeners();
@@ -93,8 +91,8 @@ public class NEGuilds extends JavaPlugin {
         return instance;
     }
 
-    public static GuildManager getGuildManager() {
-        return guildManager;
+    public static GuildRegistry getGuildRegistry() {
+        return guildRegistry;
     }
 
     public static PluginManager getPluginManager() {

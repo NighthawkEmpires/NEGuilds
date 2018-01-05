@@ -16,7 +16,8 @@ public class PluginListener implements Listener {
     @EventHandler
     public void onEnable(PluginEnableEvent event) {
         if (event.getPlugin().equals(getPlugin())) {
-            NEGuilds.getGuildManager().loadGuilds();
+            // Shouldn't need to do this, but to be safe
+            NEGuilds.getGuildRegistry().registerFromDatabase();
 
             for (Player player : Bukkit.getOnlinePlayers()) {
                 getUserManager().loadUser(new User(player.getUniqueId()));
@@ -27,8 +28,6 @@ public class PluginListener implements Listener {
     @EventHandler
     public void onDisable(PluginDisableEvent event) {
         if (event.getPlugin().equals(NEGuilds.getPlugin())) {
-            NEGuilds.getGuildManager().saveGuilds();
-
             for (Player player : Bukkit.getOnlinePlayers()) {
                 NEGuilds.getUserManager().saveUser(NEGuilds.getUserManager().getUser(player.getUniqueId()));
             }

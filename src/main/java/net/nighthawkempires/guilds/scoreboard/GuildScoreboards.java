@@ -47,7 +47,7 @@ public class GuildScoreboards extends Scoreboards {
         power.setSuffix("");
 
         objective[0].getScore(ChatColor.DARK_GRAY + "" + ChatColor.STRIKETHROUGH + "" + ChatColor.BOLD + "------------").setScore(10);
-        objective[0].getScore(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + " Guild" + ChatColor.GRAY + ": ").setScore(9);
+        objective[0].getScore(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + " GuildModel" + ChatColor.GRAY + ": ").setScore(9);
         objective[0].getScore("    " + ChatColor.WHITE + ChatColor.BOLD).setScore(8);
         try {
             guild.setSuffix(user.getGuild().getColor() + "" + ChatColor.BOLD + user.getGuild().getName());

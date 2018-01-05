@@ -35,7 +35,7 @@ public class UserLoader {
                 results.next();
                 getUser().setName(Bukkit.getOfflinePlayer(getUser().getUUID()).getName());
                 try {
-                    getUser().setGuild(NEGuilds.getGuildManager().getGuild(UUID.fromString(results.getString("guild_uuid"))));
+                    getUser().setGuild(NEGuilds.getGuildRegistry().getGuild(UUID.fromString(results.getString("guild_uuid"))));
                     getUser().setType(RankType.valueOf(results.getString("guild_rank")));
                 } catch (Exception e) {
                     getUser().setGuild(null);

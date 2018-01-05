@@ -19,7 +19,7 @@ public class GuildTag extends PlayerTag {
         if (user.getGuild() == null) {
             return null;
         }
-        Guild guild = user.getGuild();
+        GuildModel guild = user.getGuild();
         TextComponent tag = new TextComponent("[");
         tag.setColor(ChatColor.DARK_GRAY);
         TextComponent mid = new TextComponent(guild.getName());
