@@ -8,6 +8,8 @@ import net.nighthawkempires.guilds.data.datasection.AbstractPersistentModel;
 import net.nighthawkempires.guilds.data.datasection.DataSection;
 import net.nighthawkempires.guilds.guild.relation.RelationType;
 import org.bukkit.*;
+import org.bukkit.entity.Player;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -20,6 +22,7 @@ public class GuildModel extends AbstractPersistentModel<String> {
     private String description;
     private ChatColor color;
     private Location home;
+    private UUID leader;
     private List<UUID> members;
     private List<UUID> invites;
     private List<Chunk> territory;
@@ -30,6 +33,8 @@ public class GuildModel extends AbstractPersistentModel<String> {
         this.name = name;
         this.description = "";
         this.color = ChatColor.GRAY;
+        this.home = Bukkit.getPlayer(leader).getWorld().getSpawnLocation();
+        this.leader = leader;
         this.members = Lists.newArrayList(leader);
         this.invites = new ArrayList<>();
         this.territory = new ArrayList<>();
@@ -69,6 +74,19 @@ public class GuildModel extends AbstractPersistentModel<String> {
 
     public void setHome(Location home) {
         this.home = home;
+        NEGuilds.getGuildRegistry().register(this);
+    }
+
+    public UUID getLeader() {
+        return leader;
+    }
+
+    public Player getLeaderPlayer() {
+        return Bukkit.getPlayer(leader);
+    }
+
+    public void setLeader(UUID leader) {
+        this.leader = leader;
         NEGuilds.getGuildRegistry().register(this);
     }
 
@@ -154,12 +172,14 @@ public class GuildModel extends AbstractPersistentModel<String> {
     }
 
     public GuildModel(String id, DataSection data) {
+        uuid = UUID.fromString(id);
         name = data.getString("name");
         String desc = data.getStringNullable("description");
         if (desc != null) {
             description = data.getStringNullable("description");
         }
         color = ChatColor.valueOf(data.getString("color", "DARK_GRAY"));
+        leader = UUID.fromString(data.getString("leader"));
         members = data.getStringList("members").stream().map(UUID::fromString).collect(Collectors.toList());
         invites = data.getStringList("invites").stream().map(UUID::fromString).collect(Collectors.toList());
 
@@ -189,7 +209,10 @@ public class GuildModel extends AbstractPersistentModel<String> {
             float yaw = Float.valueOf(homeData.getString("yaw"));
             float pitch = Float.valueOf(homeData.getString("pitch"));
             home = new Location(world, x, y ,z, yaw, pitch);
+        } else {
+            home = getLeaderPlayer().getWorld().getSpawnLocation();
         }
+
     }
 
     @Override
@@ -207,6 +230,7 @@ public class GuildModel extends AbstractPersistentModel<String> {
         if (color != null) {
             map.put("color", getColor().name());
         }
+        map.put("leader", leader.toString());
         map.put("members", getMembers().stream().map(UUID::toString).collect(Collectors.toList()));
         map.put("invites", getInvites().stream().map(UUID::toString).collect(Collectors.toList()));
 
