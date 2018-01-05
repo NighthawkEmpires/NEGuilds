@@ -136,10 +136,7 @@ public class GuildModel extends AbstractPersistentModel<String> {
         if (desc != null) {
             description = data.getStringNullable("description");
         }
-        String strColor = data.getStringNullable("color");
-        if (strColor != null) {
-            color = ChatColor.valueOf(strColor);
-        }
+        color = ChatColor.valueOf(data.getString("color", "DARK_GRAY"));
         members = data.getStringList("members").stream().map(UUID::fromString).collect(Collectors.toList());
         members = data.getStringList("invites").stream().map(UUID::fromString).collect(Collectors.toList());
 
