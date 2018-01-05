@@ -179,7 +179,10 @@ public class GuildModel extends AbstractPersistentModel<String> {
             description = data.getStringNullable("description");
         }
         color = ChatColor.valueOf(data.getString("color", "DARK_GRAY"));
-        leader = UUID.fromString(data.getString("leader"));
+        String leaderStr = data.getStringNullable("leader");
+        if (leaderStr != null) {
+            leader = UUID.fromString(data.getString("leader"));
+        }
         members = data.getStringList("members").stream().map(UUID::fromString).collect(Collectors.toList());
         invites = data.getStringList("invites").stream().map(UUID::fromString).collect(Collectors.toList());
 
@@ -230,7 +233,9 @@ public class GuildModel extends AbstractPersistentModel<String> {
         if (color != null) {
             map.put("color", getColor().name());
         }
-        map.put("leader", leader.toString());
+        if (leader != null) {
+            map.put("leader", leader.toString());
+        }
         map.put("members", getMembers().stream().map(UUID::toString).collect(Collectors.toList()));
         map.put("invites", getInvites().stream().map(UUID::toString).collect(Collectors.toList()));
 
