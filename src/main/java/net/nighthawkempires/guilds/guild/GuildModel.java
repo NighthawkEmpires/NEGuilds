@@ -32,7 +32,6 @@ public class GuildModel extends AbstractPersistentModel<String> {
         this.name = name;
         this.description = "";
         this.color = ChatColor.GRAY;
-        this.home = Bukkit.getPlayer(leader).getWorld().getSpawnLocation();
         this.leader = leader;
         this.members = Lists.newArrayList(leader);
         this.invites = new ArrayList<>();
@@ -241,10 +240,6 @@ public class GuildModel extends AbstractPersistentModel<String> {
             float yaw = Float.valueOf(homeData.getString("yaw"));
             float pitch = Float.valueOf(homeData.getString("pitch"));
             home = new Location(world, x, y, z, yaw, pitch);
-        } else if (leader != null) {
-            home = getLeaderPlayer().getWorld().getSpawnLocation();
-        } else {
-            home = Bukkit.getWorlds().get(0).getSpawnLocation();
         }
     }
 
