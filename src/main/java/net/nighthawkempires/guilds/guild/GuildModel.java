@@ -27,6 +27,9 @@ public class GuildModel extends AbstractPersistentModel<String> {
         this.uuid = uuid;
         this.name = name;
         this.members = Lists.newArrayList(leader);
+        this.invites = new ArrayList<>();
+        this.territory = new ArrayList<>();
+        this.relations = new ConcurrentHashMap<>();
     }
 
     public String getName() {
