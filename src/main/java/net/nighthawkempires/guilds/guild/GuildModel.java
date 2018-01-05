@@ -231,19 +231,15 @@ public class GuildModel extends AbstractPersistentModel<String> {
             }
         }
 
-        try {
-            DataSection homeData = data.getSectionNullable("home");
-            if (homeData != null) {
-                World world = Bukkit.getWorld(homeData.getString("world"));
-                double x = homeData.getDouble("cord-x");
-                double y = homeData.getDouble("cord-y");
-                double z = homeData.getDouble("cord-z");
-                float yaw = Float.valueOf(homeData.getString("yaw"));
-                float pitch = Float.valueOf(homeData.getString("pitch"));
-                home = new Location(world, x, y, z, yaw, pitch);
-            }
-        } catch (NullPointerException e) {
-            home = null;
+        DataSection homeData = data.getSectionNullable("home");
+        if (homeData != null && homeData.getKeys().size() == 6) {
+            World world = Bukkit.getWorld(homeData.getString("world"));
+            double x = homeData.getDouble("cord-x");
+            double y = homeData.getDouble("cord-y");
+            double z = homeData.getDouble("cord-z");
+            float yaw = Float.valueOf(homeData.getString("yaw"));
+            float pitch = Float.valueOf(homeData.getString("pitch"));
+            home = new Location(world, x, y, z, yaw, pitch);
         }
     }
 
@@ -280,7 +276,7 @@ public class GuildModel extends AbstractPersistentModel<String> {
         }
         map.put("relations", relateMap);
 
-        if (getHome() != null) {
+        if (home != null) {
             Location home = getHome();
             Map<String, Object> homeMap = new HashMap<>();
             homeMap.put("world", home.getWorld().getName());
