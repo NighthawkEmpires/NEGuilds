@@ -203,19 +203,22 @@ public class GuildModel extends AbstractPersistentModel<String> {
             }
         }
 
-        DataSection homeData = data.getSectionNullable("home");
-        if (homeData != null) {
-            World world = Bukkit.getWorld(homeData.getString("world"));
-            double x = homeData.getDouble("cord-x");
-            double y = homeData.getDouble("cord-y");
-            double z = homeData.getDouble("cord-z");
-            float yaw = Float.valueOf(homeData.getString("yaw"));
-            float pitch = Float.valueOf(homeData.getString("pitch"));
-            home = new Location(world, x, y ,z, yaw, pitch);
-        } else {
-            home = getLeaderPlayer().getWorld().getSpawnLocation();
-        }
+        try {
+            DataSection homeData = data.getSectionNullable("home");
+            if (homeData != null) {
+                World world = Bukkit.getWorld(homeData.getString("world"));
+                double x = homeData.getDouble("cord-x");
+                double y = homeData.getDouble("cord-y");
+                double z = homeData.getDouble("cord-z");
+                float yaw = Float.valueOf(homeData.getString("yaw"));
+                float pitch = Float.valueOf(homeData.getString("pitch"));
+                home = new Location(world, x, y, z, yaw, pitch);
+            } else {
+                home = getLeaderPlayer().getWorld().getSpawnLocation();
+            }
+        } catch (NullPointerException e) {
 
+        }
     }
 
     @Override
