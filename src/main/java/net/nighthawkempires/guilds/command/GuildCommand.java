@@ -195,7 +195,7 @@ public class GuildCommand implements CommandExecutor {
                     player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have claimed land at " + ChatColor.DARK_GRAY + "[" + ChatColor.GOLD + chunk.getX() + ChatColor.DARK_GRAY
                             + ", " + ChatColor.GOLD + chunk.getZ() + ChatColor.DARK_GRAY + "]" + ChatColor.GRAY + " for your guild."));
                     for (Player players : Bukkit.getOnlinePlayers()) {
-                        if (guild.getMembers().contains(player.getUniqueId())) {
+                        if (guild.getMembers().contains(players.getUniqueId())) {
                             if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
                                 players.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.BLUE + player.getName() + ChatColor.GRAY + " claimed land at " + ChatColor.DARK_GRAY + "[" + ChatColor.GOLD + chunk.getX() + ChatColor.DARK_GRAY
                                         + ", " + ChatColor.GOLD + chunk.getZ() + ChatColor.DARK_GRAY + "]" + ChatColor.GRAY + " for your guild."));
