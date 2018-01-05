@@ -1,6 +1,6 @@
-# IDEA
-*.iml
-.idea/*
+### Java template
+*.class
 
-# Maven
-target/*
+# IntelliJ-specific
+.idea/
+*.iml
