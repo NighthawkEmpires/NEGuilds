@@ -907,7 +907,7 @@ public class GuildCommand implements CommandExecutor {
                         return true;
                     }
 
-                    if (!player.hasPermission("ne.admin") && NEGuilds.getGuildRegistry().containsBannedWord()) {
+                    if (!player.hasPermission("ne.admin") && NEGuilds.getGuildRegistry().containsBannedWord(name)) {
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "That name contains a banned word!"));
                         return true;
                     }
