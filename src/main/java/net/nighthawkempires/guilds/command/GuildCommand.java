@@ -567,7 +567,7 @@ public class GuildCommand implements CommandExecutor {
                         return true;
                     }
 
-                    if (NEGuilds.getGuildRegistry().containsBannedWord(name)) {
+                    if (!player.hasPermission("ne.admin") && NEGuilds.getGuildRegistry().containsBannedWord(name)) {
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "That name contains a banned word!"));
                         return true;
                     }
@@ -904,6 +904,11 @@ public class GuildCommand implements CommandExecutor {
                     String name = args[1];
                     if (name.length() > 15) {
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "That name is too long!"));
+                        return true;
+                    }
+
+                    if (!player.hasPermission("ne.admin") && NEGuilds.getGuildRegistry().containsBannedWord()) {
+                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "That name contains a banned word!"));
                         return true;
                     }
 
