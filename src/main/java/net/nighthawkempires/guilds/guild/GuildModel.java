@@ -89,21 +89,41 @@ public class GuildModel extends AbstractPersistentModel<String> {
         NEGuilds.getGuildRegistry().register(this);
     }
 
-    public List<UUID> getMembers() {
-        return members;
+    public ImmutableList<UUID> getMembers() {
+        return ImmutableList.copyOf(members);
     }
 
     public void setMembers(List<UUID> members) {
-        this.members = members;
+        this.members = new ArrayList<>(members);
         NEGuilds.getGuildRegistry().register(this);
     }
 
-    public List<UUID> getInvites() {
-        return invites;
+    public void addMember(UUID member) {
+        members.add(member);
+        NEGuilds.getGuildRegistry().register(this);
+    }
+
+    public void removeMember(UUID member) {
+        members.remove(member);
+        NEGuilds.getGuildRegistry().register(this);
+    }
+
+    public ImmutableList<UUID> getInvites() {
+        return ImmutableList.copyOf(invites);
     }
 
     public void setInvites(List<UUID> invites) {
-        this.invites = invites;
+        this.invites = new ArrayList<>(invites);
+        NEGuilds.getGuildRegistry().register(this);
+    }
+
+    public void addInvite(UUID invite) {
+        invites.add(invite);
+        NEGuilds.getGuildRegistry().register(this);
+    }
+
+    public void removeInvite(UUID invite) {
+        invites.remove(invite);
         NEGuilds.getGuildRegistry().register(this);
     }
 

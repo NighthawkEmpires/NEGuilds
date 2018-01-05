@@ -10,14 +10,8 @@ import net.nighthawkempires.guilds.guild.rank.RankType;
 import net.nighthawkempires.guilds.guild.relation.RelationType;
 import net.nighthawkempires.guilds.user.User;
 import org.apache.commons.lang.math.NumberUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Chunk;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.*;
+import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -431,7 +425,7 @@ public class GuildCommand implements CommandExecutor {
                         return true;
                     }
 
-                    guild.getMembers().remove(player.getUniqueId());
+                    guild.removeMember(player.getUniqueId());
                     user.setGuild(null);
                     user.setType(null);
                     player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have left " + guild.getColor() + guild.getName() + ChatColor.GRAY + "."));
@@ -659,12 +653,12 @@ public class GuildCommand implements CommandExecutor {
                             players.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.BLUE + player.getName() + ChatColor.GRAY + " has joined the guild."));
                         }
                     }
-                    guildd.getMembers().add(player.getUniqueId());
+                    guildd.addMember(player.getUniqueId());
                     user.setGuild(guildd);
                     user.setType(RankType.RECRUIT);
                     player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have joined " + guildd.getColor() + guildd.getName() + ChatColor.GRAY + "."));
                     if (guildd.getInvites().contains(player.getUniqueId())) {
-                        guildd.getInvites().remove(player.getUniqueId());
+                        guildd.removeInvite(player.getUniqueId());
                     }
                 } else if (args[0].toLowerCase().equals("invite") || args[0].toLowerCase().equals("inv")) {
                     if (!inGuild || guild == null) {
@@ -685,7 +679,7 @@ public class GuildCommand implements CommandExecutor {
                     }
 
                     if (!guild.getInvites().contains(invitee.getUniqueId())) {
-                        guild.getInvites().add(invitee.getUniqueId());
+                        guild.addInvite(invitee.getUniqueId());
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have invited " + ChatColor.BLUE + invitee.getName() + ChatColor.GRAY + " to the guild!"));
                         for (Player players : Bukkit.getOnlinePlayers()) {
                             if (guild.getMembers().contains(players.getUniqueId())) {
@@ -700,7 +694,7 @@ public class GuildCommand implements CommandExecutor {
                             }
                         }
                     } else {
-                        guild.getInvites().remove(invitee.getUniqueId());
+                        guild.removeInvite(invitee.getUniqueId());
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have revoked " + ChatColor.BLUE + invitee.getName() + "'s " + ChatColor.GRAY + "invitation to the guild!"));
                         for (Player players : Bukkit.getOnlinePlayers()) {
                             if (guild.getMembers().contains(players.getUniqueId())) {
@@ -883,7 +877,7 @@ public class GuildCommand implements CommandExecutor {
                         return true;
                     }
 
-                    guild.getMembers().remove(kickee.getUniqueId());
+                    guild.removeMember(kickee.getUniqueId());
                     temp.setGuild(null);
                     temp.setType(null);
                     player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have kicked " + ChatColor.BLUE + kickee.getName() + ChatColor.GRAY + " from the guild!"));
