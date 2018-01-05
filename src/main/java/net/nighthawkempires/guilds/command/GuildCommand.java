@@ -1340,6 +1340,7 @@ public class GuildCommand implements CommandExecutor {
                     }
 
                     temp.setType(RankType.LEADER);
+                    guild.setLeader(temp.getUUID());
                     user.setType(RankType.OFFICER);
                     player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have made " + ChatColor.BLUE + leader.getName() + ChatColor.GRAY + " the leader of the guild!"));
                     for (Player players : Bukkit.getOnlinePlayers()) {
