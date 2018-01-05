@@ -1,7 +1,6 @@
 package net.nighthawkempires.guilds.guild;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
+import com.google.common.collect.*;
 import net.nighthawkempires.core.utils.ChunkUtil;
 import net.nighthawkempires.guilds.NEGuilds;
 import net.nighthawkempires.guilds.data.datasection.AbstractPersistentModel;
@@ -108,12 +107,22 @@ public class GuildModel extends AbstractPersistentModel<String> {
         NEGuilds.getGuildRegistry().register(this);
     }
 
-    public List<Chunk> getTerritory() {
-        return territory;
+    public ImmutableList<Chunk> getTerritory() {
+        return ImmutableList.copyOf(territory);
     }
 
     public void setTerritory(List<Chunk> territory) {
-        this.territory = territory;
+        this.territory = Lists.newArrayList(territory);
+        NEGuilds.getGuildRegistry().register(this);
+    }
+
+    public void addTerritory(Chunk chunk) {
+        territory.add(chunk);
+        NEGuilds.getGuildRegistry().register(this);
+    }
+
+    public void removeTerritory(Chunk chunk) {
+        territory.remove(chunk);
         NEGuilds.getGuildRegistry().register(this);
     }
 

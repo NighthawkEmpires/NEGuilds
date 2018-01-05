@@ -176,7 +176,7 @@ public class GuildCommand implements CommandExecutor {
                             powerRival = powerRival / guild.getMembers().size();
 
                             if (MathUtil.greaterThan(power, (int) Math.ceil((double) powerRival * 2.5))) {
-                                guilds.getTerritory().remove(chunk);
+                                guilds.removeTerritory(chunk);
                                 for (Player players : Bukkit.getOnlinePlayers()) {
                                     if (guilds.getMembers().contains(players.getUniqueId())) {
                                         players.sendMessage(Lang.CHAT_TAG.getServerMessage(guild.getColor() + guild.getName() + ChatColor.GRAY + " claimed over your territory at " + ChatColor.DARK_GRAY + "["
@@ -197,7 +197,7 @@ public class GuildCommand implements CommandExecutor {
                         }
                     }
 
-                    guild.getTerritory().add(chunk);
+                    guild.addTerritory(chunk);
                     player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have claimed land at " + ChatColor.DARK_GRAY + "[" + ChatColor.GOLD + chunk.getX() + ChatColor.DARK_GRAY
                             + ", " + ChatColor.GOLD + chunk.getZ() + ChatColor.DARK_GRAY + "]" + ChatColor.GRAY + " for your guild."));
                     for (Player players : Bukkit.getOnlinePlayers()) {
@@ -482,7 +482,7 @@ public class GuildCommand implements CommandExecutor {
                             }
                         }
                     }
-                    guild.getTerritory().remove(chunk);
+                    guild.removeTerritory(chunk);
                     player.sendMessage(Lang.CHAT_TAG.getServerMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have unclaimed territory at " + ChatColor.DARK_GRAY + "[" + ChatColor.GOLD + chunk.getX()
                             + ChatColor.DARK_GRAY + ", " + ChatColor.GOLD + chunk.getZ() + ChatColor.DARK_GRAY + "}" + ChatColor.GRAY + ".")));
                 } else if (args[0].toLowerCase().equals("color")) {
@@ -1277,7 +1277,7 @@ public class GuildCommand implements CommandExecutor {
                                     player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "The home of the guild was removed due to the territory it was in was unclaimed!"));
                                 }
                             }
-                            guild.getTerritory().remove(chunk);
+                            guild.removeTerritory(chunk);
                         }
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have unclaimed all of your guild's territory!"));
                         for (Player players : Bukkit.getOnlinePlayers()) {
