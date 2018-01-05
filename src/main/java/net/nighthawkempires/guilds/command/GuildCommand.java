@@ -582,7 +582,7 @@ public class GuildCommand implements CommandExecutor {
                     user.setType(RankType.LEADER);
                     player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have created a guild by the name of " + user.getGuild().getColor() + user.getGuild().getName() + ChatColor.GRAY + "."));
                     for (Player players : Bukkit.getOnlinePlayers()) {
-                        players.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.BLUE + player.getName() + ChatColor.GRAY + " has crated a guild by the name of "
+                        players.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.BLUE + player.getName() + ChatColor.GRAY + " has created a guild by the name of "
                                 + user.getGuild().getColor() + user.getGuild().getName() + ChatColor.GRAY + "."));
                     }
                 } else if (args[0].toLowerCase().equals("help")) {
