@@ -251,33 +251,32 @@ public class GuildModel extends AbstractPersistentModel<String> {
     @Override
     public Map<String, Object> serialize() {
         Map<String, Object> map = new HashMap<>();
-        map.put("name", getName());
+        map.put("name", name);
         if (description != null) {
-            map.put("description", getDescription());
+            map.put("description", description);
         }
         if (color != null) {
-            map.put("color", getColor().name());
+            map.put("color", color.name());
         }
         if (leader != null) {
             map.put("leader", leader.toString());
         }
-        map.put("members", getMembers().stream().map(UUID::toString).collect(Collectors.toList()));
-        map.put("invites", getInvites().stream().map(UUID::toString).collect(Collectors.toList()));
+        map.put("members", members.stream().map(UUID::toString).collect(Collectors.toList()));
+        map.put("invites", invites.stream().map(UUID::toString).collect(Collectors.toList()));
 
         List<String> chunks = new ArrayList<>();
-        for (Chunk chunk : getTerritory()) {
+        for (Chunk chunk : territory) {
             chunks.add(ChunkUtil.getChunkString(chunk));
         }
         map.put("territory", chunks);
 
         Map<String, Object> relateMap = new HashMap<>();
-        for (UUID guildId : getRelations().keySet()) {
-            relateMap.put(guildId.toString(), getRelations().get(guildId).name());
+        for (UUID guildId : relations.keySet()) {
+            relateMap.put(guildId.toString(), relations.get(guildId).name());
         }
         map.put("relations", relateMap);
 
         if (home != null) {
-            Location home = getHome();
             Map<String, Object> homeMap = new HashMap<>();
             homeMap.put("world", home.getWorld().getName());
             homeMap.put("cord-x", home.getBlockX());
