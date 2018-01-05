@@ -49,7 +49,7 @@ public class GuildRegistry extends AbstractGuildsDataRegistry<GuildModel> {
       for (GuildModel guild : getRegistered()) {
             if (guild.getRelations().keySet().size() != 0) {
                 if (guild.getRelations().keySet().contains(uuid)) {
-                    guild.getRelations().remove(uuid);
+                    guild.removeRelation(uuid);
                 }
             }
         }

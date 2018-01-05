@@ -1014,20 +1014,20 @@ public class GuildCommand implements CommandExecutor {
                         return true;
                     }
 
-                    if (guildd.getRelations().containsKey(guild) && guildd.getRelations().get(guild) == RelationType.ALLY) {
+                    if (guildd.getRelations().containsKey(guild.getUUID()) && guildd.getRelations().get(guild.getUUID()) == RelationType.ALLY) {
                         if (guild.isAlly(guildd)) {
                             player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're already allied with that guild!"));
                             return true;
-                        } else if (guild.getRelations().containsKey(guildd) && guild.getRelations().get(guildd) == RelationType.ALLY) {
+                        } else if (guild.getRelations().containsKey(guildd.getUUID()) && guild.getRelations().get(guildd.getUUID()) == RelationType.ALLY) {
                             player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You already have that relation wish set with that guild!"));
                             return true;
                         }
 
-                        guild.getRelations().put(guildd.getUUID(), RelationType.ALLY);
+                        guild.addRelation(guildd.getUUID(), RelationType.ALLY);
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have accepted " + guildd.getColor() + guildd.getName() + "'s " + ChatColor.GRAY + "wish to be allies."));
                         for (Player players : Bukkit.getOnlinePlayers()) {
                             if (guild.getMembers().contains(players.getUniqueId())) {
-                                if (!players.getUniqueId().toString().equals(player.getUniqueId())) {
+                                if (!players.getUniqueId().equals(player.getUniqueId())) {
                                     players.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.BLUE + player.getName() + ChatColor.GRAY + " has accepted " + guildd.getColor() + guildd.getName() + "'s " + ChatColor.GRAY + "wish to be allies."));
                                 }
                             } else if (guildd.getMembers().contains(players.getUniqueId())) {
@@ -1043,7 +1043,7 @@ public class GuildCommand implements CommandExecutor {
                             return true;
                         }
 
-                        guild.getRelations().put(guildd.getUUID(), RelationType.ALLY);
+                        guild.addRelation(guildd.getUUID(), RelationType.ALLY);
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have requested to be allies with  " + guildd.getColor() + guildd.getName() + ChatColor.GRAY + "."));
                         for (Player players : Bukkit.getOnlinePlayers()) {
                             if (guild.getMembers().contains(players.getUniqueId())) {
@@ -1085,20 +1085,20 @@ public class GuildCommand implements CommandExecutor {
                         return true;
                     }
 
-                    if (guildd.getRelations().containsKey(guild) && guildd.getRelations().get(guild) == RelationType.TRUCE) {
+                    if (guildd.getRelations().containsKey(guild.getUUID()) && guildd.getRelations().get(guild.getUUID()) == RelationType.TRUCE) {
                         if (guild.isTruce(guildd)) {
                             player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're already truced with that guild!"));
                             return true;
-                        } else if (guild.getRelations().containsKey(guildd) && guild.getRelations().get(guildd) == RelationType.TRUCE) {
+                        } else if (guild.getRelations().containsKey(guildd.getUUID()) && guild.getRelations().get(guildd.getUUID()) == RelationType.TRUCE) {
                             player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You already have that relation wish set with that guild!"));
                             return true;
                         }
 
-                        guild.getRelations().put(guildd.getUUID(), RelationType.TRUCE);
+                        guild.addRelation(guildd.getUUID(), RelationType.TRUCE);
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have accepted " + guildd.getColor() + guildd.getName() + "'s " + ChatColor.GRAY + "wish to be truced."));
                         for (Player players : Bukkit.getOnlinePlayers()) {
                             if (guild.getMembers().contains(players.getUniqueId())) {
-                                if (!players.getUniqueId().toString().equals(player.getUniqueId())) {
+                                if (!players.getUniqueId().equals(player.getUniqueId())) {
                                     players.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.BLUE + player.getName() + ChatColor.GRAY + " has accepted " + guildd.getColor() + guildd.getName() + "'s " + ChatColor.GRAY + "wish to be truced."));
                                 }
                             } else if (guildd.getMembers().contains(players.getUniqueId())) {
@@ -1109,12 +1109,12 @@ public class GuildCommand implements CommandExecutor {
                         if (guild.isTruce(guildd)) {
                             player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're already allied with that guild!"));
                             return true;
-                        } else if (guild.getRelations().containsKey(guildd) && guild.getRelations().get(guildd) == RelationType.TRUCE) {
+                        } else if (guild.getRelations().containsKey(guildd.getUUID()) && guild.getRelations().get(guildd.getUUID()) == RelationType.TRUCE) {
                             player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You already have that relation wish set with that guild!"));
                             return true;
                         }
 
-                        guild.getRelations().put(guildd.getUUID(), RelationType.TRUCE);
+                        guild.addRelation(guildd.getUUID(), RelationType.TRUCE);
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have requested to be truced with  " + guildd.getColor() + guildd.getName() + ChatColor.GRAY + "."));
                         for (Player players : Bukkit.getOnlinePlayers()) {
                             if (guild.getMembers().contains(players.getUniqueId())) {
@@ -1156,20 +1156,20 @@ public class GuildCommand implements CommandExecutor {
                         return true;
                     }
 
-                    if (guildd.getRelations().containsKey(guild) && guildd.getRelations().get(guild) == RelationType.NEUTRAL) {
+                    if (guildd.getRelations().containsKey(guild.getUUID()) && guildd.getRelations().get(guild.getUUID()) == RelationType.NEUTRAL) {
                         if (guild.isNeutral(guildd)) {
                             player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're already neutral with that guild!"));
                             return true;
-                        } else if (guild.getRelations().containsKey(guildd) && guild.getRelations().get(guildd) == RelationType.NEUTRAL) {
+                        } else if (guild.getRelations().containsKey(guildd.getUUID()) && guild.getRelations().get(guildd.getUUID()) == RelationType.NEUTRAL) {
                             player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You already have that relation wish set with that guild!"));
                             return true;
                         }
 
-                        guild.getRelations().put(guildd.getUUID(), RelationType.NEUTRAL);
+                        guild.addRelation(guildd.getUUID(), RelationType.NEUTRAL);
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have accepted " + guildd.getColor() + guildd.getName() + "'s " + ChatColor.GRAY + "wish to be neutral."));
                         for (Player players : Bukkit.getOnlinePlayers()) {
                             if (guild.getMembers().contains(players.getUniqueId())) {
-                                if (!players.getUniqueId().toString().equals(player.getUniqueId())) {
+                                if (!players.getUniqueId().equals(player.getUniqueId())) {
                                     players.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.BLUE + player.getName() + ChatColor.GRAY + " has accepted " + guildd.getColor() + guildd.getName() + "'s " + ChatColor.GRAY + "wish to be neutral."));
                                 }
                             } else if (guildd.getMembers().contains(players.getUniqueId())) {
@@ -1180,16 +1180,16 @@ public class GuildCommand implements CommandExecutor {
                         if (guild.isNeutral(guildd)) {
                             player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're already neutral with that guild!"));
                             return true;
-                        } else if (guild.getRelations().containsKey(guildd) && guild.getRelations().get(guildd) == RelationType.NEUTRAL) {
+                        } else if (guild.getRelations().containsKey(guildd.getUUID()) && guild.getRelations().get(guildd.getUUID()) == RelationType.NEUTRAL) {
                             player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You already have that relation wish set with that guild!"));
                             return true;
                         }
 
-                        guild.getRelations().put(guildd.getUUID(), RelationType.NEUTRAL);
+                        guild.addRelation(guildd.getUUID(), RelationType.NEUTRAL);
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have requested to be neutral with  " + guildd.getColor() + guildd.getName() + ChatColor.GRAY + "."));
                         for (Player players : Bukkit.getOnlinePlayers()) {
                             if (guild.getMembers().contains(players.getUniqueId())) {
-                                if (!players.getUniqueId().toString().equals(player.getUniqueId())) {
+                                if (!players.getUniqueId().equals(player.getUniqueId())) {
                                     players.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.BLUE + player.getName() + ChatColor.GRAY + " has requested to be neutral with  " + guildd.getColor() + guildd.getName() + ChatColor.GRAY + "."));
                                 }
                             } else if (guildd.getMembers().contains(players.getUniqueId())) {
@@ -1227,14 +1227,14 @@ public class GuildCommand implements CommandExecutor {
                         return true;
                     }
 
-                    if (guildd.getRelations().containsKey(guild) && guildd.getRelations().get(guild) == RelationType.ENEMY) {
+                    if (guildd.getRelations().containsKey(guild.getUUID()) && guildd.getRelations().get(guild.getUUID()) == RelationType.ENEMY) {
                     } else {
-                        if (guild.getRelations().containsKey(guildd) && guild.getRelations().get(guildd) == RelationType.ENEMY) {
+                        if (guild.getRelations().containsKey(guildd.getUUID()) && guild.getRelations().get(guildd.getUUID()) == RelationType.ENEMY) {
                             player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You already have that relation wish set with that guild!"));
                             return true;
                         }
 
-                        guild.getRelations().put(guildd.getUUID(), RelationType.ENEMY);
+                        guild.addRelation(guildd.getUUID(), RelationType.ENEMY);
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have enemied " + guildd.getColor() + guildd.getName() + ChatColor.GRAY + "."));
                         for (Player players : Bukkit.getOnlinePlayers()) {
                             if (guild.getMembers().contains(players.getUniqueId())) {

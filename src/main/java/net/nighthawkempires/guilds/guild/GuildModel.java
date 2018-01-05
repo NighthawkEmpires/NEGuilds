@@ -1,7 +1,9 @@
 package net.nighthawkempires.guilds.guild;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import net.nighthawkempires.core.utils.ChunkUtil;
+import net.nighthawkempires.guilds.NEGuilds;
 import net.nighthawkempires.guilds.data.datasection.AbstractPersistentModel;
 import net.nighthawkempires.guilds.data.datasection.DataSection;
 import net.nighthawkempires.guilds.guild.relation.RelationType;
@@ -40,6 +42,7 @@ public class GuildModel extends AbstractPersistentModel<String> {
 
     public void setName(String name) {
         this.name = name;
+        NEGuilds.getGuildRegistry().register(this);
     }
 
     public String getDescription() {
@@ -48,6 +51,7 @@ public class GuildModel extends AbstractPersistentModel<String> {
 
     public void setDescription(String description) {
         this.description = description;
+        NEGuilds.getGuildRegistry().register(this);
     }
 
     public ChatColor getColor() {
@@ -56,6 +60,7 @@ public class GuildModel extends AbstractPersistentModel<String> {
 
     public void setColor(ChatColor color) {
         this.color = color;
+        NEGuilds.getGuildRegistry().register(this);
     }
 
     public Location getHome() {
@@ -64,6 +69,7 @@ public class GuildModel extends AbstractPersistentModel<String> {
 
     public void setHome(Location home) {
         this.home = home;
+        NEGuilds.getGuildRegistry().register(this);
     }
 
     public List<UUID> getMembers() {
@@ -72,6 +78,7 @@ public class GuildModel extends AbstractPersistentModel<String> {
 
     public void setMembers(List<UUID> members) {
         this.members = members;
+        NEGuilds.getGuildRegistry().register(this);
     }
 
     public List<UUID> getInvites() {
@@ -80,6 +87,7 @@ public class GuildModel extends AbstractPersistentModel<String> {
 
     public void setInvites(List<UUID> invites) {
         this.invites = invites;
+        NEGuilds.getGuildRegistry().register(this);
     }
 
     public List<Chunk> getTerritory() {
@@ -88,14 +96,29 @@ public class GuildModel extends AbstractPersistentModel<String> {
 
     public void setTerritory(List<Chunk> territory) {
         this.territory = territory;
+        NEGuilds.getGuildRegistry().register(this);
     }
 
-    public ConcurrentMap<UUID, RelationType> getRelations() {
-        return relations;
+    public ImmutableMap<UUID, RelationType> getRelations() {
+        return ImmutableMap.copyOf(relations);
     }
 
-    public void setRelations(ConcurrentMap<UUID, RelationType> relations) {
-        this.relations = relations;
+    public void addRelation(UUID uuid, RelationType type) {
+        relations.put(uuid, type);
+        NEGuilds.getGuildRegistry().register(this);
+    }
+
+    public void removeRelation(UUID uuid) {
+        relations.remove(uuid);
+        NEGuilds.getGuildRegistry().register(this);
+    }
+
+    public void setRelations(Map<UUID, RelationType> relations) {
+        this.relations = new ConcurrentHashMap<>();
+        for (Map.Entry<UUID, RelationType>  entry : relations.entrySet()) {
+            this.relations.put(entry.getKey(), entry.getValue());
+        }
+        NEGuilds.getGuildRegistry().register(this);
     }
 
     public boolean isAlly(GuildModel guild) {
