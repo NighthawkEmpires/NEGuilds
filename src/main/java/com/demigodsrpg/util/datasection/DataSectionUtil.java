@@ -1,4 +1,4 @@
-package net.nighthawkempires.guilds.data.datasection;
+package com.demigodsrpg.util.datasection;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

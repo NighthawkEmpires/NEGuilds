@@ -1,14 +1,15 @@
 package net.nighthawkempires.guilds.guild;
 
+import com.demigodsrpg.util.datasection.DataSection;
 import com.google.common.collect.ImmutableList;
 import net.nighthawkempires.core.NECore;
 import net.nighthawkempires.guilds.NEGuilds;
-import net.nighthawkempires.guilds.data.AbstractGuildsDataRegistry;
-import net.nighthawkempires.guilds.data.datasection.DataSection;
+import net.nighthawkempires.guilds.data.AbstractRegistry;
+import org.bukkit.Chunk;
 
 import java.util.*;
 
-public class GuildRegistry extends AbstractGuildsDataRegistry<GuildModel> {
+public class GuildRegistry extends AbstractRegistry<GuildModel> {
     private static final boolean SAVE_PRETTY = true;
     private static final String FILE_NAME = "guilds";
     private static final ImmutableList<String> BANNED_WORDS;
@@ -35,31 +36,40 @@ public class GuildRegistry extends AbstractGuildsDataRegistry<GuildModel> {
         BANNED_WORDS = ImmutableList.copyOf(banned);
     }
 
-    public GuildRegistry() {
-        super(SAVE_PRETTY);
+    public GuildRegistry(NEGuilds backend) {
+        super(backend, FILE_NAME, SAVE_PRETTY);
     }
 
     @Override
-    protected GuildModel valueFromData(String stringKey, DataSection data) {
+    protected GuildModel fromDataSection(String stringKey, DataSection data) {
         return new GuildModel(stringKey, data);
     }
 
-    @Override
-    protected String getName() {
-        return FILE_NAME;
+    public Optional<GuildModel> getGuild(UUID uuid) {
+        return fromKey(uuid.toString());
     }
 
-    public GuildModel getGuild(UUID uuid) {
-        return fromId(uuid.toString());
-    }
-
-    public GuildModel getGuild(String name) {
-        for (GuildModel guild : getRegistered()) {
+    public Optional<GuildModel> getGuild(String name) {
+        for (GuildModel guild : REGISTERED_DATA.asMap().values()) {
             if (guild.getName().toLowerCase().equals(name.toLowerCase())) {
-                return guild;
+                return Optional.of(guild);
             }
         }
-        return null;
+        return Optional.empty();
+    }
+
+    public Optional<GuildModel> getGuild(Chunk chunk) {
+        for (GuildModel guild : REGISTERED_DATA.asMap().values()) {
+            if (guild.getTerritory().contains(chunk)) {
+                return Optional.of(guild);
+            }
+        }
+        return Optional.empty();
+    }
+
+    @Deprecated
+    public ImmutableList<GuildModel> getGuilds() {
+        return ImmutableList.copyOf(REGISTERED_DATA.asMap().values());
     }
 
     public UUID createGuild(String name, UUID leader) {
@@ -70,19 +80,19 @@ public class GuildRegistry extends AbstractGuildsDataRegistry<GuildModel> {
     }
 
     public void deleteGuild(UUID uuid) {
-        for (GuildModel guild : getRegistered()) {
+        for (GuildModel guild : REGISTERED_DATA.asMap().values()) {
             if (guild.getRelations().keySet().size() != 0) {
                 if (guild.getRelations().keySet().contains(uuid)) {
                     guild.removeRelation(uuid);
                 }
             }
         }
-        unregister(fromId(uuid.toString()));
+        remove(uuid.toString());
         NECore.getLoggers().info(NEGuilds.getPlugin(), "Deleted guild: " + uuid.toString() + ".");
     }
 
     public boolean guildExists(UUID uuid) {
-        return fromId(uuid.toString()) != null;
+        return fromKey(uuid.toString()) != null;
     }
 
     public boolean guildExists(String name) {

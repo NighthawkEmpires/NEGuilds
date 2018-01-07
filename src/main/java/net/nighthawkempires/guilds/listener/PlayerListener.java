@@ -1,12 +1,15 @@
 package net.nighthawkempires.guilds.listener;
 
 import net.nighthawkempires.core.utils.MathUtil;
+import net.nighthawkempires.guilds.guild.GuildModel;
 import net.nighthawkempires.guilds.user.User;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+
+import java.util.Optional;
 
 import static net.nighthawkempires.guilds.NEGuilds.getUserManager;
 
@@ -30,9 +33,10 @@ public class PlayerListener implements Listener {
 
         user = getUserManager().getUser(player.getUniqueId());
 
-        if (user.getGuild() != null) {
-            if (!user.getGuild().getMembers().contains(player.getUniqueId())) {
-                user.getGuild().addMember(player.getUniqueId());
+        Optional<GuildModel> opGuild = user.getGuild();
+        if (opGuild.isPresent()) {
+            if (!opGuild.get().getMembers().contains(player.getUniqueId())) {
+                opGuild.get().addMember(player.getUniqueId());
             }
         }
 

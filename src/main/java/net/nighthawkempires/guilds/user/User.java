@@ -1,15 +1,17 @@
 package net.nighthawkempires.guilds.user;
 
+import net.nighthawkempires.guilds.NEGuilds;
 import net.nighthawkempires.guilds.guild.GuildModel;
 import net.nighthawkempires.guilds.guild.rank.RankType;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public class User {
 
     private UUID uuid;
     private String name;
-    private GuildModel guild;
+    UUID guild;
     private RankType type;
     private int power;
 
@@ -25,12 +27,20 @@ public class User {
         this.name = name;
     }
 
-    public GuildModel getGuild() {
-        return guild;
+    public Optional<GuildModel> getGuild() {
+        return NEGuilds.getGuildRegistry().getGuild(guild);
     }
 
     public void setGuild(GuildModel guild) {
-        this.guild = guild;
+        this.guild = guild.getUUID();
+    }
+
+    public void setGuild(UUID guildId) {
+        this.guild = guildId;
+    }
+
+    public void removeGuild() {
+        guild = null;
     }
 
     public RankType getType() {

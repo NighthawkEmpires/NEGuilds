@@ -51,7 +51,7 @@ public class GuildScoreboards extends Scoreboards {
         objective[0].getScore(ChatColor.GRAY + "" + ChatColor.BOLD + " Guild" + ChatColor.GRAY + ": ").setScore(9);
         objective[0].getScore(ChatColor.GRAY + " ➛   " + ChatColor.WHITE + "" + ChatColor.BOLD).setScore(8);
         try {
-            guild.setSuffix(user.getGuild().getColor() + "" + ChatColor.BOLD + user.getGuild().getName());
+            guild.setSuffix(user.getGuild().get().getColor() + "" + ChatColor.BOLD + user.getGuild().get().getName());
         } catch (Exception e) {
             guild.setSuffix(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "NaN");
         }
@@ -72,7 +72,8 @@ public class GuildScoreboards extends Scoreboards {
 
         this.task = Bukkit.getScheduler().scheduleSyncRepeatingTask(NECore.getPlugin(), () -> {
             try {
-                guild.setSuffix(user.getGuild().getColor() + "" + ChatColor.BOLD + user.getGuild().getName());
+                guild.setSuffix(
+                        user.getGuild().get().getColor() + "" + ChatColor.BOLD + user.getGuild().get().getName());
             } catch (Exception e) {
                 guild.setSuffix(ChatColor.YELLOW + "" + ChatColor.BOLD + "NaN");
             }

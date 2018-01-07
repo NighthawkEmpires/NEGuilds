@@ -8,6 +8,8 @@ import net.nighthawkempires.guilds.NEGuilds;
 import net.nighthawkempires.guilds.user.User;
 import org.bukkit.entity.Player;
 
+import java.util.Optional;
+
 public class GuildTag extends PlayerTag {
 
     public String getName() {
@@ -16,10 +18,11 @@ public class GuildTag extends PlayerTag {
 
     public TextComponent getComponentFor(Player player) {
         User user = NEGuilds.getUserManager().getUser(player.getUniqueId());
-        if (user.getGuild() == null) {
+        Optional<GuildModel> opGuild = user.getGuild();
+        if (!opGuild.isPresent()) {
             return null;
         }
-        GuildModel guild = user.getGuild();
+        GuildModel guild = opGuild.get();
         TextComponent tag = new TextComponent("[");
         tag.setColor(ChatColor.DARK_GRAY);
         TextComponent mid = new TextComponent(guild.getName());
