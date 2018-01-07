@@ -576,9 +576,8 @@ public class GuildCommand implements CommandExecutor {
                         return true;
                     }
 
-                    GuildModel guild = opGuild.get();
-
                     UUID uuid = NEGuilds.getGuildRegistry().createGuild(name, player.getUniqueId());
+                    GuildModel guild = NEGuilds.getGuildRegistry().getGuild(uuid).get();
                     user.setGuild(uuid);
                     user.setType(RankType.LEADER);
                     player.sendMessage(Lang.CHAT_TAG.getServerMessage(
