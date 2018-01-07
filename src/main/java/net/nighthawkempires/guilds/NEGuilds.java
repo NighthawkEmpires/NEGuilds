@@ -38,7 +38,7 @@ public class NEGuilds extends JavaPlugin {
         plugin = this;
         instance = this;
 
-        guildRegistry = new GuildRegistry(this);
+        guildRegistry = new GuildRegistry(NECore.getFileManager().getGuildDirectory().getPath());
         pluginManager = Bukkit.getPluginManager();
         userManager = new UserManager();
 

@@ -29,7 +29,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.nighthawkempires.guilds.Model;
-import net.nighthawkempires.guilds.NEGuilds;
 
 import java.io.*;
 import java.util.Map;
@@ -54,9 +53,9 @@ public abstract class AbstractRegistry<T extends Model> {
         TABLE = table;
     }
 
-    public AbstractRegistry(NEGuilds backend, String folder, boolean pretty) {
+    public AbstractRegistry(String path, String folder, boolean pretty) {
         REGISTERED_DATA = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(3, TimeUnit.MINUTES).build();
-        FOLDER = new File(backend.getDataFolder().getPath() + "/" + folder + "/");
+        FOLDER = new File(path + "/" + folder + "/");
         PRETTY = pretty;
     }
 

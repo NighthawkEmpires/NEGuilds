@@ -36,8 +36,8 @@ public class GuildRegistry extends AbstractRegistry<GuildModel> {
         BANNED_WORDS = ImmutableList.copyOf(banned);
     }
 
-    public GuildRegistry(NEGuilds backend) {
-        super(backend, FILE_NAME, SAVE_PRETTY);
+    public GuildRegistry(String path) {
+        super(path, FILE_NAME, SAVE_PRETTY);
     }
 
     @Override
