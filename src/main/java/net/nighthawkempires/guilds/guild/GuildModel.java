@@ -127,6 +127,9 @@ public class GuildModel implements Model {
     }
 
     public ImmutableList<Chunk> getTerritory() {
+        if (territory.isEmpty()) {
+            return ImmutableList.of();
+        }
         return ImmutableList.copyOf(territory);
     }
 

@@ -72,7 +72,10 @@ public class GuildRegistry extends AbstractRegistry<GuildModel> {
 
     @Deprecated
     public ImmutableList<GuildModel> getGuilds() {
-        return ImmutableList.copyOf(REGISTERED_DATA.asMap().values());
+        if (REGISTERED_DATA.size() > 0) {
+            return ImmutableList.copyOf(REGISTERED_DATA.asMap().values());
+        }
+        return ImmutableList.of();
     }
 
     public UUID createGuild(String name, UUID leader) {
