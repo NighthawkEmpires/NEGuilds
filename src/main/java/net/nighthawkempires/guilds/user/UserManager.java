@@ -7,9 +7,7 @@ import net.nighthawkempires.guilds.NEGuilds;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
 
@@ -75,7 +73,8 @@ public class UserManager {
         if (NECore.getSettings().useSQL) {
             try {
                 String table = "guilds_data";
-                PreparedStatement statement = NECore.getMySQL().getConnection().prepareStatement("SELECT * FROM " + table + " WHERE UUID=?");
+                PreparedStatement statement =
+                        NECore.getMySQL().getConnection().prepareStatement("SELECT * FROM " + table + " WHERE UUID=?");
                 statement.setString(1, uuid.toString());
                 ResultSet set = statement.executeQuery();
                 return set.next();

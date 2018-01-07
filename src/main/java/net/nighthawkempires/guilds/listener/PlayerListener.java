@@ -46,7 +46,9 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        User user = (getUserManager().userLoaded(player.getUniqueId()) ? getUserManager().getUser(player.getUniqueId()) : getUserManager().getTempUser(player.getUniqueId()));
+        User user =
+                (getUserManager().userLoaded(player.getUniqueId()) ? getUserManager().getUser(player.getUniqueId()) :
+                        getUserManager().getTempUser(player.getUniqueId()));
 
         getUserManager().saveUser(user);
         if (getUserManager().getUserMap().containsKey(player.getUniqueId())) {

@@ -27,7 +27,9 @@ public class UserSaver {
         savePlayerFile(true);
         if (NECore.getSettings().useSQL) {
             try {
-                PreparedStatement statement = NECore.getMySQL().getConnection().prepareStatement("UPDATE guilds_data SET name=?,guild_uuid=?,guild_rank=?,power=? WHERE uuid='" + getUser().getUUID().toString() + "'");
+                PreparedStatement statement = NECore.getMySQL().getConnection().prepareStatement(
+                        "UPDATE guilds_data SET name=?,guild_uuid=?,guild_rank=?,power=? WHERE uuid='" +
+                                getUser().getUUID().toString() + "'");
                 statement.setString(1, Bukkit.getOfflinePlayer(getUser().getUUID()).getName());
                 try {
                     statement.setString(2, getUser().getGuild().getUUID().toString());
@@ -41,7 +43,8 @@ public class UserSaver {
                 }
                 statement.setInt(4, getUser().getPower());
                 statement.executeUpdate();
-                NECore.getLoggers().info("Saved Guilds User " + getUser().getUUID().toString() + ": " + Bukkit.getOfflinePlayer(getUser().getUUID()).getName() + ".");
+                NECore.getLoggers().info("Saved Guilds User " + getUser().getUUID().toString() + ": " +
+                        Bukkit.getOfflinePlayer(getUser().getUUID()).getName() + ".");
             } catch (SQLException e) {
                 e.printStackTrace();
             }

@@ -6,10 +6,7 @@ import net.nighthawkempires.guilds.command.GuildCommand;
 import net.nighthawkempires.guilds.data.GuildData;
 import net.nighthawkempires.guilds.guild.GuildRegistry;
 import net.nighthawkempires.guilds.guild.GuildTag;
-import net.nighthawkempires.guilds.listener.GuildListener;
-import net.nighthawkempires.guilds.listener.InventoryListener;
-import net.nighthawkempires.guilds.listener.PlayerListener;
-import net.nighthawkempires.guilds.listener.PluginListener;
+import net.nighthawkempires.guilds.listener.*;
 import net.nighthawkempires.guilds.scoreboard.GuildScoreboards;
 import net.nighthawkempires.guilds.user.User;
 import net.nighthawkempires.guilds.user.UserManager;
@@ -66,10 +63,20 @@ public class NEGuilds extends JavaPlugin {
 
         registerCommands();
         registerListeners();
+
+        // Shouldn't need to do this, but to be safe
+        NEGuilds.getGuildRegistry().registerFromDatabase();
+
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            getUserManager().loadUser(new User(player.getUniqueId()));
+        }
     }
 
 
     public void onDisable() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            NEGuilds.getUserManager().saveUser(NEGuilds.getUserManager().getUser(player.getUniqueId()));
+        }
     }
 
     private void registerCommands() {
@@ -80,7 +87,6 @@ public class NEGuilds extends JavaPlugin {
         getPluginManager().registerEvents(new GuildListener(), this);
         getPluginManager().registerEvents(inventoryListener, this);
         getPluginManager().registerEvents(new PlayerListener(), this);
-        getPluginManager().registerEvents(new PluginListener(), this);
     }
 
     public static Plugin getPlugin() {

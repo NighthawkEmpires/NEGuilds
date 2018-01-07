@@ -26,8 +26,10 @@ public class GuildTag extends PlayerTag {
         mid.setColor(ChatColor.valueOf(guild.getColor().name()));
         tag.addExtra(mid);
         tag.addExtra("]");
-        tag.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText(ChatColor.GRAY + user.getType().name().substring(0, 1).toUpperCase()
-                + user.getType().name().substring(1, user.getType().name().length()).toLowerCase() + " of " + ChatColor.valueOf(guild.getColor().name()) + guild.getName())));
+        tag.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                TextComponent.fromLegacyText(ChatColor.GRAY + user.getType().name().substring(0, 1).toUpperCase()
+                        + user.getType().name().substring(1, user.getType().name().length()).toLowerCase() + " of " +
+                        ChatColor.valueOf(guild.getColor().name()) + guild.getName())));
         return tag;
     }
 

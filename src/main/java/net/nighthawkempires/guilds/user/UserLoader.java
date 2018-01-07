@@ -8,9 +8,7 @@ import net.nighthawkempires.guilds.guild.rank.RankType;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.UUID;
 
 public class UserLoader {
@@ -30,19 +28,22 @@ public class UserLoader {
     public void load() {
         if (NECore.getSettings().useSQL) {
             try {
-                PreparedStatement statement = NECore.getMySQL().getConnection().prepareStatement("SELECT * FROM guilds_data WHERE uuid='" + getUser().getUUID().toString() + "'");
+                PreparedStatement statement = NECore.getMySQL().getConnection().prepareStatement(
+                        "SELECT * FROM guilds_data WHERE uuid='" + getUser().getUUID().toString() + "'");
                 ResultSet results = statement.executeQuery();
                 results.next();
                 getUser().setName(Bukkit.getOfflinePlayer(getUser().getUUID()).getName());
                 try {
-                    getUser().setGuild(NEGuilds.getGuildRegistry().getGuild(UUID.fromString(results.getString("guild_uuid"))));
+                    getUser().setGuild(
+                            NEGuilds.getGuildRegistry().getGuild(UUID.fromString(results.getString("guild_uuid"))));
                     getUser().setType(RankType.valueOf(results.getString("guild_rank")));
                 } catch (Exception e) {
                     getUser().setGuild(null);
                     getUser().setType(null);
                 }
                 getUser().setPower(results.getInt("power"));
-                NECore.getLoggers().info("Loaded Guilds User " + getUser().getUUID().toString() + ": " + Bukkit.getOfflinePlayer(getUser().getUUID()).getName() + ".");
+                NECore.getLoggers().info("Loaded Guilds User " + getUser().getUUID().toString() + ": " +
+                        Bukkit.getOfflinePlayer(getUser().getUUID()).getName() + ".");
             } catch (SQLException e) {
                 e.printStackTrace();
             }

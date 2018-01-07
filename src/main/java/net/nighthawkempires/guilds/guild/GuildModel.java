@@ -161,7 +161,7 @@ public class GuildModel extends AbstractPersistentModel<String> {
 
     public void setRelations(Map<UUID, RelationType> relations) {
         this.relations = new ConcurrentHashMap<>();
-        for (Map.Entry<UUID, RelationType>  entry : relations.entrySet()) {
+        for (Map.Entry<UUID, RelationType> entry : relations.entrySet()) {
             this.relations.put(entry.getKey(), entry.getValue());
         }
         NEGuilds.getGuildRegistry().register(this);
@@ -186,7 +186,7 @@ public class GuildModel extends AbstractPersistentModel<String> {
             return true;
         } else if (!getRelations().containsKey(guild.getUUID())) {
             return true;
-        } else return !isEnemy(guild) && !isTruce(guild) && !isAlly(guild);
+        } else { return !isEnemy(guild) && !isTruce(guild) && !isAlly(guild); }
     }
 
     public boolean isEnemy(GuildModel guild) {
