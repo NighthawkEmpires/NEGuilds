@@ -521,7 +521,7 @@ public class GuildCommand implements CommandExecutor {
                         return true;
                     }
 
-                    if (guild.getDescription().equals("") || guild.getDescription().equals(null)) {
+                    if ("".equals(guild.getDescription()) || guild.getDescription() == null) {
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                 ChatColor.RED + "Your guild does not currently have a description set"));
                         return true;
@@ -1743,7 +1743,7 @@ public class GuildCommand implements CommandExecutor {
     }
 
     private void sendPage(Player player, int page) {
-        int diplayPage = page;
+        int displayPage = page;
         page = page - 1;
 
         Collection<GuildModel> guilds = NEGuilds.getGuildRegistry().getRegistered();
@@ -1775,7 +1775,7 @@ public class GuildCommand implements CommandExecutor {
         String[] help = new String[]{
                 Lang.HEADER.getServerHeader(),
                 ChatColor.GRAY + "Guilds List " + ChatColor.DARK_GRAY + "- Page" + ChatColor.GRAY + ": " +
-                        ChatColor.GOLD + diplayPage + ChatColor.DARK_GRAY + "/" + ChatColor.GOLD + totalPages,
+                        ChatColor.GOLD + displayPage + ChatColor.DARK_GRAY + "/" + ChatColor.GOLD + totalPages,
                 Lang.FOOTER.getMessage(),
         };
         player.sendMessage(help);

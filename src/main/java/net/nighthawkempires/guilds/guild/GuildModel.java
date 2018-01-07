@@ -214,6 +214,7 @@ public class GuildModel extends AbstractPersistentModel<String> {
         members = data.getStringList("members").stream().map(UUID::fromString).collect(Collectors.toList());
         invites = data.getStringList("invites").stream().map(UUID::fromString).collect(Collectors.toList());
 
+        @SuppressWarnings("unchecked")
         List<String> chunks = (List) data.getListNullable("territory");
         territory = new ArrayList<>();
         if (chunks != null) {
@@ -223,6 +224,7 @@ public class GuildModel extends AbstractPersistentModel<String> {
         }
 
         relations = new ConcurrentHashMap<>();
+        @SuppressWarnings("unchecked")
         Map<String, String> relateMap = (Map) data.getNullable("relations");
         if (relateMap != null) {
             for (Map.Entry<String, String> entry : relateMap.entrySet()) {

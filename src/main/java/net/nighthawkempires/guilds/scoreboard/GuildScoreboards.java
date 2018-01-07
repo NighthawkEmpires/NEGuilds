@@ -22,6 +22,7 @@ public class GuildScoreboards extends Scoreboards {
         return task;
     }
 
+    @SuppressWarnings("SameReturnValue")
     public int getNumber() {
         return 1;
     }

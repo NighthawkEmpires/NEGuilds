@@ -16,9 +16,6 @@ import static net.nighthawkempires.core.NECore.getFileManager;
 public class UserManager {
 
     private ConcurrentMap<UUID, User> userMap;
-    private UserCreator creator;
-    private UserLoader loader;
-    private UserSaver saver;
 
     public UserManager() {
         userMap = Maps.newConcurrentMap();
@@ -48,7 +45,7 @@ public class UserManager {
 
     public void createUser(User user) {
         if (userExists(user.getUUID())) return;
-        creator = new UserCreator(user);
+        UserCreator creator = new UserCreator(user);
         creator.create();
         if (Bukkit.getOnlinePlayers().contains(Bukkit.getPlayer(user.getUUID()))) {
             loadUser(user);
@@ -57,14 +54,14 @@ public class UserManager {
 
     public void loadUser(User user) {
         if (!userExists(user.getUUID())) return;
-        loader = new UserLoader(user);
+        UserLoader loader = new UserLoader(user);
         loader.load();
         getUserMap().put(user.getUUID(), user);
     }
 
     public void saveUser(User user) {
         if (!userExists(user.getUUID())) return;
-        saver = new UserSaver(user);
+        UserSaver saver = new UserSaver(user);
         saver.save();
         getUserMap().remove(user.getUUID());
     }

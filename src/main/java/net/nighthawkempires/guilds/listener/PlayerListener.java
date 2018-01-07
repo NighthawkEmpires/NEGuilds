@@ -32,7 +32,7 @@ public class PlayerListener implements Listener {
 
         if (user.getGuild() != null) {
             if (!user.getGuild().getMembers().contains(player.getUniqueId())) {
-                user.getGuild().getMembers().add(player.getUniqueId());
+                user.getGuild().addMember(player.getUniqueId());
             }
         }
 

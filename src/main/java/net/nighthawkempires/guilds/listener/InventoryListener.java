@@ -26,7 +26,7 @@ public class InventoryListener implements Listener {
         User user = NEGuilds.getUserManager().getUser(player.getUniqueId());
 
         try {
-            if (ChatColor.stripColor(event.getClickedInventory().getName()).equals("GuildModel Color")) {
+            if (ChatColor.stripColor(event.getClickedInventory().getName()).equals("Guild Color")) {
                 if (user.getGuild() != null && user.getType() == RankType.LEADER ||
                         user.getType() == RankType.OFFICER) {
                     if (event.isShiftClick()) {
@@ -85,7 +85,7 @@ public class InventoryListener implements Listener {
 
     public Inventory inventoryGuildColor(Player player) {
         Inventory inventory = Bukkit.createInventory(player, 3 * 9,
-                ChatColor.RED + "" + ChatColor.BOLD + "" + ChatColor.ITALIC + "GuildModel Color");
+                ChatColor.RED + "" + ChatColor.BOLD + "" + ChatColor.ITALIC + "Guild Color");
         ArrayList<String> meta =
                 Lists.newArrayList("  ", ChatColor.GRAY + "Costs " + ChatColor.GOLD + 10 + ChatColor.GRAY + " Tokens");
         ItemStack[] items = new ItemStack[]{

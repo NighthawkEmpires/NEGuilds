@@ -10,14 +10,10 @@ public abstract class AbstractDataRegistry<T extends AbstractPersistentModel<Str
     protected final ConcurrentMap<String, T> REGISTERED_DATA = new ConcurrentHashMap<>();
     protected final String SAVE_PATH;
     protected final boolean SAVE_PRETTY;
-    protected final boolean PSQL_PERSISTENCE;
-    protected final String PSQL_CONNECTION;
 
-    public AbstractDataRegistry(String savePath, boolean savePretty, boolean psqlPersistence, String psqlConnection) {
+    public AbstractDataRegistry(String savePath, boolean savePretty) {
         SAVE_PATH = savePath;
         SAVE_PRETTY = savePretty;
-        PSQL_PERSISTENCE = psqlPersistence;
-        PSQL_CONNECTION = psqlConnection;
     }
 
     public T fromId(String id) {
@@ -99,6 +95,7 @@ public abstract class AbstractDataRegistry<T extends AbstractPersistentModel<Str
         return false;
     }
 
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
     final DataSection getDatabase() {
         try {
             return DataSectionUtil.loadSectionFromFile(SAVE_PATH + getName() + getExtention()).get();
@@ -130,10 +127,12 @@ public abstract class AbstractDataRegistry<T extends AbstractPersistentModel<Str
 
     protected abstract String getName();
 
+    @SuppressWarnings("SameReturnValue")
     protected String getExtention() {
         return ".extdat";
     }
 
+    @SuppressWarnings("SameReturnValue")
     protected boolean isPretty() {
         return false;
     }
