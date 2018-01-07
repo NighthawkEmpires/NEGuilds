@@ -47,7 +47,7 @@ public class GuildRegistry extends AbstractRegistry<GuildModel> {
 
     public Optional<GuildModel> getGuild(UUID uuid) {
         if (uuid == null) {
-            throw new NullPointerException("Cannot find GuildModel with a null UUID.");
+            return Optional.empty();
         }
         return fromKey(uuid.toString());
     }
