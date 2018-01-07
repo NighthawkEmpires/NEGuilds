@@ -58,7 +58,7 @@ public class GuildScoreboards extends Scoreboards {
         objective[0].getScore(ChatColor.DARK_PURPLE + " ").setScore(7);
         objective[0].getScore(ChatColor.GRAY + "" + ChatColor.BOLD + " Rank" + ChatColor.GRAY + ": ").setScore(6);
         objective[0].getScore(ChatColor.GRAY + " ➛   " + ChatColor.GREEN + "" + ChatColor.BOLD).setScore(5);
-        if (user.getGuild() != null) {
+        if (user.getGuild().isPresent()) {
             rank.setSuffix(user.getType().getName());
         } else {
             rank.setSuffix(ChatColor.GRAY + "" + ChatColor.BOLD + "NaN");
@@ -77,7 +77,7 @@ public class GuildScoreboards extends Scoreboards {
             } catch (Exception e) {
                 guild.setSuffix(ChatColor.YELLOW + "" + ChatColor.BOLD + "NaN");
             }
-            if (user.getGuild() != null) {
+            if (user.getGuild().isPresent()) {
                 rank.setSuffix(user.getType().getName());
             } else {
                 rank.setSuffix(ChatColor.GRAY + "" + ChatColor.BOLD + "NaN");

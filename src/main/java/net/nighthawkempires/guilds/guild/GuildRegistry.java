@@ -95,11 +95,11 @@ public class GuildRegistry extends AbstractRegistry<GuildModel> {
     }
 
     public boolean guildExists(UUID uuid) {
-        return fromKey(uuid.toString()) != null;
+        return fromKey(uuid.toString()).isPresent();
     }
 
     public boolean guildExists(String name) {
-        return getGuild(name) != null;
+        return getGuild(name).isPresent();
     }
 
     public ImmutableList<String> getBannedWords() {
