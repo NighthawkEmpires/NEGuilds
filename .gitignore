@@ -1,5 +1,6 @@
 ### Java template
 *.class
+target/
 
 # IntelliJ-specific
 .idea/
