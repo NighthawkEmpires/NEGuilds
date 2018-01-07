@@ -3,7 +3,6 @@ package net.nighthawkempires.guilds.user;
 import net.nighthawkempires.core.NECore;
 import net.nighthawkempires.core.file.FileManager;
 import net.nighthawkempires.core.file.FileType;
-import net.nighthawkempires.guilds.NEGuilds;
 import net.nighthawkempires.guilds.guild.rank.RankType;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -35,10 +34,10 @@ public class UserLoader {
                 getUser().setName(Bukkit.getOfflinePlayer(getUser().getUUID()).getName());
                 try {
                     getUser().setGuild(
-                            NEGuilds.getGuildRegistry().getGuild(UUID.fromString(results.getString("guild_uuid"))));
+                            UUID.fromString(results.getString("guild_uuid")));
                     getUser().setType(RankType.valueOf(results.getString("guild_rank")));
                 } catch (Exception e) {
-                    getUser().setGuild(null);
+                    getUser().removeGuild();
                     getUser().setType(null);
                 }
                 getUser().setPower(results.getInt("power"));

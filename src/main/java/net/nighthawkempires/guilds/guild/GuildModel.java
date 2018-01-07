@@ -1,10 +1,10 @@
 package net.nighthawkempires.guilds.guild;
 
+import com.demigodsrpg.util.datasection.DataSection;
 import com.google.common.collect.*;
 import net.nighthawkempires.core.utils.ChunkUtil;
+import net.nighthawkempires.guilds.Model;
 import net.nighthawkempires.guilds.NEGuilds;
-import net.nighthawkempires.guilds.data.datasection.AbstractPersistentModel;
-import net.nighthawkempires.guilds.data.datasection.DataSection;
 import net.nighthawkempires.guilds.guild.relation.RelationType;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
-public class GuildModel extends AbstractPersistentModel<String> {
+public class GuildModel implements Model {
 
     private UUID uuid;
     private String name;
@@ -132,17 +132,17 @@ public class GuildModel extends AbstractPersistentModel<String> {
 
     public void setTerritory(List<Chunk> territory) {
         this.territory = Lists.newArrayList(territory);
-        NEGuilds.getGuildRegistry().register(this);
+        getNEGuilds().getGuildRegistry().register(this);
     }
 
     public void addTerritory(Chunk chunk) {
         territory.add(chunk);
-        NEGuilds.getGuildRegistry().register(this);
+        getNEGuilds().getGuildRegistry().register(this);
     }
 
     public void removeTerritory(Chunk chunk) {
         territory.remove(chunk);
-        NEGuilds.getGuildRegistry().register(this);
+        getNEGuilds().getGuildRegistry().register(this);
     }
 
     public ImmutableMap<UUID, RelationType> getRelations() {
@@ -151,12 +151,12 @@ public class GuildModel extends AbstractPersistentModel<String> {
 
     public void addRelation(UUID uuid, RelationType type) {
         relations.put(uuid, type);
-        NEGuilds.getGuildRegistry().register(this);
+        getNEGuilds().getGuildRegistry().register(this);
     }
 
     public void removeRelation(UUID uuid) {
         relations.remove(uuid);
-        NEGuilds.getGuildRegistry().register(this);
+        getNEGuilds().getGuildRegistry().register(this);
     }
 
     public void setRelations(Map<UUID, RelationType> relations) {
@@ -164,7 +164,7 @@ public class GuildModel extends AbstractPersistentModel<String> {
         for (Map.Entry<UUID, RelationType> entry : relations.entrySet()) {
             this.relations.put(entry.getKey(), entry.getValue());
         }
-        NEGuilds.getGuildRegistry().register(this);
+        getNEGuilds().getGuildRegistry().register(this);
     }
 
     public boolean isAlly(GuildModel guild) {
@@ -248,7 +248,7 @@ public class GuildModel extends AbstractPersistentModel<String> {
     }
 
     @Override
-    public String getPersistentId() {
+    public String getKey() {
         return uuid.toString();
     }
 

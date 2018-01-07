@@ -32,7 +32,7 @@ public class UserSaver {
                                 getUser().getUUID().toString() + "'");
                 statement.setString(1, Bukkit.getOfflinePlayer(getUser().getUUID()).getName());
                 try {
-                    statement.setString(2, getUser().getGuild().getUUID().toString());
+                    statement.setString(2, getUser().guild.toString());
                 } catch (Exception e) {
                     statement.setString(2, "");
                 }

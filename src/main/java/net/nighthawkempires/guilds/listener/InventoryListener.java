@@ -5,6 +5,7 @@ import net.nighthawkempires.core.NECore;
 import net.nighthawkempires.core.language.Lang;
 import net.nighthawkempires.core.utils.*;
 import net.nighthawkempires.guilds.NEGuilds;
+import net.nighthawkempires.guilds.guild.GuildModel;
 import net.nighthawkempires.guilds.guild.rank.RankType;
 import net.nighthawkempires.guilds.user.User;
 import org.bukkit.*;
@@ -15,8 +16,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
-import java.util.UUID;
+import java.util.*;
 
 public class InventoryListener implements Listener {
 
@@ -27,12 +27,15 @@ public class InventoryListener implements Listener {
 
         try {
             if (ChatColor.stripColor(event.getClickedInventory().getName()).equals("Guild Color")) {
-                if (user.getGuild() != null && user.getType() == RankType.LEADER ||
-                        user.getType() == RankType.OFFICER) {
+                Optional<GuildModel> opGuild = user.getGuild();
+                if (opGuild.isPresent() && (user.getType() == RankType.LEADER ||
+                        user.getType() == RankType.OFFICER)) {
                     if (event.isShiftClick()) {
                         event.setCancelled(true);
                         return;
                     }
+
+                    GuildModel guild = opGuild.get();
 
                     event.setCancelled(true);
                     if (event.getCurrentItem().getType() == Material.STAINED_GLASS_PANE) {
@@ -45,7 +48,7 @@ public class InventoryListener implements Listener {
                             color = colors;
                         }
                     }
-                    if (user.getGuild().getColor() == color) {
+                    if (guild.getColor() == color) {
                         player.closeInventory();
                         player.sendMessage(Lang.CHAT_TAG
                                 .getServerMessage(ChatColor.RED + "That is already the current color of the guild!"));
@@ -59,14 +62,14 @@ public class InventoryListener implements Listener {
                         return;
                     }
 
-                    user.getGuild().setColor(color);
+                    guild.setColor(color);
                     NECore.getUserManager().getUser(player.getUniqueId())
                             .setTokens(NECore.getUserManager().getUser(player.getUniqueId()).getTokens() - 10);
                     player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                             ChatColor.GRAY + "You have set the color of your guild to " + color + color.name() +
                                     ChatColor.GRAY + "."));
                     SoundUtil.playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP);
-                    for (UUID uuid : user.getGuild().getMembers()) {
+                    for (UUID uuid : guild.getMembers()) {
                         if (!uuid.toString().equals(player.getUniqueId().toString())) {
                             if (Bukkit.getOnlinePlayers().contains(Bukkit.getPlayer(uuid))) {
                                 Bukkit.getPlayer(uuid).sendMessage(Lang.CHAT_TAG.getServerMessage(

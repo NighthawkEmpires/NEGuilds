@@ -19,7 +19,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class NEGuilds extends JavaPlugin {
 
     private static Plugin plugin;
-    private static NEGuilds instance;
+    static NEGuilds instance;
 
     private static GuildRegistry guildRegistry;
     private static PluginManager pluginManager;
@@ -38,7 +38,7 @@ public class NEGuilds extends JavaPlugin {
         plugin = this;
         instance = this;
 
-        guildRegistry = new GuildRegistry();
+        guildRegistry = new GuildRegistry(this);
         pluginManager = Bukkit.getPluginManager();
         userManager = new UserManager();
 
@@ -64,8 +64,7 @@ public class NEGuilds extends JavaPlugin {
         registerCommands();
         registerListeners();
 
-        // Shouldn't need to do this, but to be safe
-        NEGuilds.getGuildRegistry().registerFromDatabase();
+        guildRegistry.loadAllFromDb();
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             getUserManager().loadUser(new User(player.getUniqueId()));
@@ -91,10 +90,6 @@ public class NEGuilds extends JavaPlugin {
 
     public static Plugin getPlugin() {
         return plugin;
-    }
-
-    public static NEGuilds getInstance() {
-        return instance;
     }
 
     public static GuildRegistry getGuildRegistry() {
