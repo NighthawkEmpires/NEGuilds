@@ -126,11 +126,8 @@ public class GuildModel implements Model {
         NEGuilds.getGuildRegistry().register(this);
     }
 
-    public ImmutableList<Chunk> getTerritory() {
-        if (territory.isEmpty()) {
-            return ImmutableList.of();
-        }
-        return ImmutableList.copyOf(territory);
+    public List<Chunk> getTerritory() {
+        return territory;
     }
 
     public void setTerritory(List<Chunk> territory) {
@@ -273,7 +270,9 @@ public class GuildModel implements Model {
 
         List<String> chunks = new ArrayList<>();
         for (Chunk chunk : territory) {
-            chunks.add(ChunkUtil.getChunkString(chunk));
+            if (chunk != null) {
+                chunks.add(ChunkUtil.getChunkString(chunk));
+            }
         }
         map.put("territory", chunks);
 

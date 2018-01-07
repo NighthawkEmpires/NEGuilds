@@ -9,6 +9,7 @@ import net.nighthawkempires.guilds.guild.GuildModel;
 import net.nighthawkempires.guilds.guild.rank.RankType;
 import net.nighthawkempires.guilds.guild.relation.RelationType;
 import net.nighthawkempires.guilds.user.User;
+import net.nighthawkempires.guilds.util.GuildMapUtil;
 import org.apache.commons.lang.math.NumberUtils;
 import org.bukkit.*;
 import org.bukkit.command.*;
@@ -68,6 +69,7 @@ public class GuildCommand implements CommandExecutor {
                 Lang.CMD_HELP.getCommand("g", "demote <player>", "Demote a player in your guild"),
                 Lang.CMD_HELP.getCommand("g", "rank [player] [rank]", "Set the guild rank of a member"),
                 Lang.CMD_HELP.getCommand("g", "admin", "Enable Admin bypass mode"),//
+                Lang.CMD_HELP.getCommand("g", "map", "Show a map of guild around you"),
                 Lang.FOOTER.getMessage(),
         };
         help1 = new String[]{
@@ -115,6 +117,7 @@ public class GuildCommand implements CommandExecutor {
                 Lang.CMD_HELP.getCommand("g", "leader [player]", "Give a member guild leadership"),
                 Lang.CMD_HELP.getCommand("g", "promote <player>", "Promote a player in your guild"),
                 Lang.CMD_HELP.getCommand("g", "demote <player>", "Demote a player in your guild"),
+                Lang.CMD_HELP.getCommand("g", "map", "Show a map of guild around you"),
                 Lang.FOOTER.getMessage(),
         };
     }
@@ -544,6 +547,8 @@ public class GuildCommand implements CommandExecutor {
 
                     player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                             ChatColor.GRAY + "The description of your guild is: " + guild.getDescription() + "."));
+                } else if (args[0].toLowerCase().equals("map")) {
+                    GuildMapUtil.sendGuildMap(player);
                 } else {
                     player.sendMessage(Lang.SYNTAX_ERROR.getServerMessage());
                     return true;
@@ -576,9 +581,8 @@ public class GuildCommand implements CommandExecutor {
                         return true;
                     }
 
-                    GuildModel guild = opGuild.get();
-
                     UUID uuid = NEGuilds.getGuildRegistry().createGuild(name, player.getUniqueId());
+                    GuildModel guild = NEGuilds.getGuildRegistry().getGuild(uuid).get();
                     user.setGuild(uuid);
                     user.setType(RankType.LEADER);
                     player.sendMessage(Lang.CHAT_TAG.getServerMessage(
