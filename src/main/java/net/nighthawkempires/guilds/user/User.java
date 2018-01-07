@@ -32,10 +32,16 @@ public class User {
     }
 
     public void setGuild(GuildModel guild) {
+        if (guild == null) {
+            throw new NullPointerException("Guild cannot be null.");
+        }
         this.guild = guild.getUUID();
     }
 
     public void setGuild(UUID guildId) {
+        if (guildId == null) {
+            throw new NullPointerException("Guild UUID cannot be null.");
+        }
         this.guild = guildId;
     }
 
