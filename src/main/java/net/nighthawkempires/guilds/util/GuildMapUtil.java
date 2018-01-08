@@ -116,6 +116,13 @@ public class GuildMapUtil {
             }
         }
 
+        // Draw the player
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < 2; j++) {
+                guildMap.setRGB(255 + i, 255 + j, Color.WHITE.getRGB());
+            }
+        }
+
         return guildMap;
     }
 }
