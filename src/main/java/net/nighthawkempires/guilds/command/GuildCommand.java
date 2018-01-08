@@ -2,6 +2,7 @@ package net.nighthawkempires.guilds.command;
 
 import com.google.common.collect.Lists;
 import net.nighthawkempires.core.language.Lang;
+import net.nighthawkempires.core.utils.ChunkUtil;
 import net.nighthawkempires.core.utils.MathUtil;
 import net.nighthawkempires.essentials.NEEssentials;
 import net.nighthawkempires.guilds.NEGuilds;
@@ -163,7 +164,7 @@ public class GuildCommand implements CommandExecutor {
                     }
 
                     Chunk chunk = player.getLocation().getChunk();
-                    if (guild.getTerritory().contains(chunk)) {
+                    if (guild.getTerritory().contains(ChunkUtil.getChunkString(chunk))) {
                         player.sendMessage(
                                 Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "Your guild already owns this land!"));
                         return true;
@@ -1338,9 +1339,9 @@ public class GuildCommand implements CommandExecutor {
 
                         GuildModel guild = opGuild.get();
 
-                        for (Chunk chunk : guild.getTerritory()) {
+                        for (String chunk : guild.getTerritory()) {
                             if (guild.getHome() != null) {
-                                if (guild.getHome().getChunk() == chunk) {
+                                if (ChunkUtil.getChunkString(guild.getHome().getChunk()) == chunk) {
                                     guild.setHome(null);
                                     for (Player players : Bukkit.getOnlinePlayers()) {
                                         if (guild.getMembers().contains(players.getUniqueId())) {

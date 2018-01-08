@@ -5,6 +5,7 @@ import net.nighthawkempires.guilds.NEGuilds;
 import net.nighthawkempires.guilds.guild.GuildModel;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.inventivetalent.mapmanager.controller.MapController;
 import org.inventivetalent.mapmanager.wrapper.MapWrapper;
 
@@ -15,7 +16,7 @@ import java.util.Optional;
 
 public class GuildMapUtil {
 
-    private final static int IMAGE_SIZE = 1024;
+    private final static int IMAGE_SIZE = 2_048;
 
     private static Chunk topLeft;
     private static Chunk center;
@@ -69,7 +70,8 @@ public class GuildMapUtil {
 
     public static void sendGuildMap(Player player) {
         // Give the map TODO
-        if (!player.getInventory().getItemInMainHand().getItemMeta().getDisplayName().equals("Guild Map")) {
+        ItemStack item = player.getInventory().getItemInMainHand();
+        if (item == null || !item.hasItemMeta() || !item.getItemMeta().getDisplayName().equals("Guild Map")) {
             player.getInventory()
                     .setItemInMainHand(new ItemStackBuilder(Material.MAP).displayName("Guild Map").build());
         }
@@ -87,42 +89,30 @@ public class GuildMapUtil {
         BufferedImage guildMap = new BufferedImage(IMAGE_SIZE, IMAGE_SIZE, BufferedImage.TYPE_INT_RGB);
 
         // Decide the the min and max
-        int minX = player.getLocation().getChunk().getX() - 28;
-        int maxX = player.getLocation().getChunk().getX() + 30;
-        int minZ = player.getLocation().getChunk().getZ() - 28;
-        int maxZ = player.getLocation().getChunk().getZ() + 30;
+        int minX = player.getLocation().getChunk().getX() - 14;
+        int maxX = player.getLocation().getChunk().getX() + 15;
+        int minZ = player.getLocation().getChunk().getZ() - 14;
+        int maxZ = player.getLocation().getChunk().getZ() + 15;
         for (int x = minX; x < maxX; x++) {
             for (int z = minZ; z < maxZ; z++) {
-                // Color to draw
-                Color color = Color.gray;
-
                 // Get guild info at location
                 Chunk chunk = player.getWorld().getChunkAt(x, z);
                 Optional<GuildModel> opGuild = NEGuilds.getGuildRegistry().getGuild(chunk);
                 if (opGuild.isPresent()) {
                     GuildModel guild = opGuild.get();
-                    color = ColorUtil.getColor(guild.getColor());
                     Graphics g = guildMap.getGraphics();
-                    g.setFont(g.getFont().deriveFont(10f));
-                    g.drawString(guild.getName().substring(0, 1).toUpperCase(), x * 8, z * 8);
+                    g.setColor(ColorUtil.getColor(guild.getColor()));
+                    g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 4));
+                    g.drawString(guild.getName().substring(0, 1).toUpperCase(), x * 4, z * 4);
                     g.dispose();
-                }
-
-                // Draw slot
-                int drawX = x * 4;
-                int drawZ = z * 4;
-                for (int i = 0; i < 4; i++) {
-                    for (int j = 0; j < 4; j++) {
-                        guildMap.setRGB(drawX + i, drawZ + j, color.getRGB());
-                    }
                 }
             }
         }
 
         // Draw the player
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) {
-                guildMap.setRGB(510 + i, 510 + j, Color.WHITE.getRGB());
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                guildMap.setRGB(1_020 + i, 1_020 + j, Color.WHITE.getRGB());
             }
         }
 

@@ -3,6 +3,7 @@ package net.nighthawkempires.guilds.guild;
 import com.demigodsrpg.util.datasection.DataSection;
 import com.google.common.collect.ImmutableList;
 import net.nighthawkempires.core.NECore;
+import net.nighthawkempires.core.utils.ChunkUtil;
 import net.nighthawkempires.guilds.NEGuilds;
 import net.nighthawkempires.guilds.data.AbstractRegistry;
 import org.bukkit.Chunk;
@@ -63,7 +64,7 @@ public class GuildRegistry extends AbstractRegistry<GuildModel> {
 
     public Optional<GuildModel> getGuild(Chunk chunk) {
         for (GuildModel guild : REGISTERED_DATA.asMap().values()) {
-            if (guild.getTerritory().contains(chunk)) {
+            if (guild.getTerritory().contains(ChunkUtil.getChunkString(chunk))) {
                 return Optional.of(guild);
             }
         }
