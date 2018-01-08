@@ -3,12 +3,12 @@ package net.nighthawkempires.guilds.util;
 import net.nighthawkempires.core.language.Lang;
 import net.nighthawkempires.guilds.NEGuilds;
 import net.nighthawkempires.guilds.guild.GuildModel;
-import org.bukkit.ChatColor;
-import org.bukkit.Chunk;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.inventivetalent.mapmanager.controller.MapController;
 import org.inventivetalent.mapmanager.wrapper.MapWrapper;
 
+import java.awt.Color;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.Optional;
@@ -68,12 +68,14 @@ public class GuildMapUtil {
     }
 
     public static void sendGuildMap(Player player) {
+        // Give the map
+        player.getInventory().setItemInMainHand(new ItemStackBuilder(Material.MAP).displayName("Guild Map").build());
+
+        // Send image to map
         MapWrapper mapWrapper = NEGuilds.getMapManager().wrapImage(getGuildMapImage(player));
         MapController mapController = mapWrapper.getController();
-
         mapController.addViewer(player);
         mapController.sendContent(player);
-
         mapController.showInHand(player);
     }
 
@@ -96,8 +98,11 @@ public class GuildMapUtil {
                 Optional<GuildModel> opGuild = NEGuilds.getGuildRegistry().getGuild(chunk);
                 if (opGuild.isPresent()) {
                     GuildModel guild = opGuild.get();
-                    // TODO symbol = guild.getColor() + guild.getName().substring(0, 1).toUpperCase();
                     color = ColorUtil.getColor(guild.getColor());
+                    Graphics g = guildMap.getGraphics();
+                    g.setFont(g.getFont().deriveFont(5f));
+                    g.drawString(guild.getName().substring(0, 1).toUpperCase(), x * 4, z * 4);
+                    g.dispose();
                 }
 
                 // Draw slot
