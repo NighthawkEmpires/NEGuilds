@@ -15,6 +15,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.inventivetalent.mapmanager.MapManagerPlugin;
+import org.inventivetalent.mapmanager.manager.MapManager;
 
 public class NEGuilds extends JavaPlugin {
 
@@ -24,6 +26,7 @@ public class NEGuilds extends JavaPlugin {
     private static GuildRegistry guildRegistry;
     private static PluginManager pluginManager;
     private static UserManager userManager;
+    private static MapManager mapManager;
 
     private static InventoryListener inventoryListener;
 
@@ -41,6 +44,7 @@ public class NEGuilds extends JavaPlugin {
         guildRegistry = new GuildRegistry(NECore.getFileManager().getGuildDirectory().getPath());
         pluginManager = Bukkit.getPluginManager();
         userManager = new UserManager();
+        mapManager = ((MapManagerPlugin) Bukkit.getPluginManager().getPlugin("MapManager")).getMapManager();
 
         inventoryListener = new InventoryListener();
 
@@ -98,6 +102,10 @@ public class NEGuilds extends JavaPlugin {
 
     public static PluginManager getPluginManager() {
         return pluginManager;
+    }
+
+    public static MapManager getMapManager() {
+        return mapManager;
     }
 
     public static UserManager getUserManager() {
