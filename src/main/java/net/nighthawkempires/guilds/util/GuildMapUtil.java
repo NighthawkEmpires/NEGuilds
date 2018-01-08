@@ -17,11 +17,11 @@ public class GuildMapUtil {
         List<GuildModel> guilds = Lists.newArrayList();
         int lines = 0;
         for (int z = player.getLocation().getChunk().getZ() - 3; z <= player.getLocation().getChunk().getZ() + 3; z++) {
-            if (lines == 0) {
+            if (lines == 2) {
                 builder.append(ChatColor.translateAlternateColorCodes('&', "&8___&7\\&6N&7/&8___"));
-            } else if (lines == 1) {
+            } else if (lines == 3) {
                 builder.append(ChatColor.translateAlternateColorCodes('&', "&8___&6W&7+&6E&8___"));
-            } else if (lines == 2) {
+            } else if (lines == 4) {
                 builder.append(ChatColor.translateAlternateColorCodes('&', "&8___&7/&6S&7\\&8___"));
             } else {
                 builder.append(ChatColor.DARK_GRAY).append("_________");
