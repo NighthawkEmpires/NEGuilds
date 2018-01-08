@@ -133,17 +133,17 @@ public class GuildModel implements Model {
 
     public void setTerritory(List<Chunk> territory) {
         this.territory = Lists.newArrayList(territory);
-        getNEGuilds().getGuildRegistry().register(this);
+        NEGuilds.getGuildRegistry().register(this);
     }
 
     public void addTerritory(Chunk chunk) {
         territory.add(chunk);
-        getNEGuilds().getGuildRegistry().register(this);
+        NEGuilds.getGuildRegistry().register(this);
     }
 
     public void removeTerritory(Chunk chunk) {
         territory.remove(chunk);
-        getNEGuilds().getGuildRegistry().register(this);
+        NEGuilds.getGuildRegistry().register(this);
     }
 
     public ImmutableMap<UUID, RelationType> getRelations() {
@@ -152,12 +152,12 @@ public class GuildModel implements Model {
 
     public void addRelation(UUID uuid, RelationType type) {
         relations.put(uuid, type);
-        getNEGuilds().getGuildRegistry().register(this);
+        NEGuilds.getGuildRegistry().register(this);
     }
 
     public void removeRelation(UUID uuid) {
         relations.remove(uuid);
-        getNEGuilds().getGuildRegistry().register(this);
+        NEGuilds.getGuildRegistry().register(this);
     }
 
     public void setRelations(Map<UUID, RelationType> relations) {
@@ -165,7 +165,7 @@ public class GuildModel implements Model {
         for (Map.Entry<UUID, RelationType> entry : relations.entrySet()) {
             this.relations.put(entry.getKey(), entry.getValue());
         }
-        getNEGuilds().getGuildRegistry().register(this);
+        NEGuilds.getGuildRegistry().register(this);
     }
 
     public boolean isAlly(GuildModel guild) {
