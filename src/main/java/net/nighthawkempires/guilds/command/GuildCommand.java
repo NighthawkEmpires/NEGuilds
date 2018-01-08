@@ -164,7 +164,7 @@ public class GuildCommand implements CommandExecutor {
                     }
 
                     Chunk chunk = player.getLocation().getChunk();
-                    if (guild.getTerritory().contains(chunk)) {
+                    if (guild.getTerritory().contains(ChunkUtil.getChunkString(chunk))) {
                         player.sendMessage(
                                 Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "Your guild already owns this land!"));
                         return true;
@@ -418,7 +418,7 @@ public class GuildCommand implements CommandExecutor {
                     GuildModel guild = opGuild.get();
 
                     Chunk chunk = player.getLocation().getChunk();
-                    if (!guild.getTerritory().contains(chunk)) {
+                    if (!guild.getTerritory().contains(ChunkUtil.getChunkString(chunk))) {
                         player.sendMessage(Lang.CHAT_TAG
                                 .getServerMessage(ChatColor.RED + "Your guild does not currently own this territory!"));
                         return true;
