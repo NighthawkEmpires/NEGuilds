@@ -126,11 +126,9 @@ public class GuildModel implements Model {
         NEGuilds.getGuildRegistry().register(this);
     }
 
-    public ImmutableList<Chunk> getTerritory() {
-        if (territory.isEmpty()) {
-            return ImmutableList.of();
-        }
-        return ImmutableList.copyOf(territory);
+    @Deprecated
+    public List<Chunk> getTerritory() {
+        return territory;
     }
 
     public void setTerritory(List<Chunk> territory) {
