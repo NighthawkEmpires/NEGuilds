@@ -15,6 +15,8 @@ import java.util.Optional;
 
 public class GuildMapUtil {
 
+    private final static int IMAGE_SIZE = 512;
+
     private static Chunk topLeft;
     private static Chunk center;
 
@@ -77,7 +79,7 @@ public class GuildMapUtil {
 
     private static BufferedImage getGuildMapImage(Player player) {
         // Create the image
-        BufferedImage guildMap = new BufferedImage(120, 120, BufferedImage.TYPE_INT_RGB);
+        BufferedImage guildMap = new BufferedImage(IMAGE_SIZE, IMAGE_SIZE, BufferedImage.TYPE_INT_RGB);
 
         // Decide the the min and max
         int minX = player.getLocation().getChunk().getX() - 14;
