@@ -2,6 +2,7 @@ package net.nighthawkempires.guilds.command;
 
 import com.google.common.collect.Lists;
 import net.nighthawkempires.core.language.Lang;
+import net.nighthawkempires.core.utils.ChunkUtil;
 import net.nighthawkempires.core.utils.MathUtil;
 import net.nighthawkempires.essentials.NEEssentials;
 import net.nighthawkempires.guilds.NEGuilds;
@@ -170,7 +171,7 @@ public class GuildCommand implements CommandExecutor {
                     }
 
                     if (MathUtil.greaterThanEqualTo(guild.getTerritory().size(),
-                            guild.getMembers().size() * 5)) {
+                            guild.getMembers().size() * 10)) {
                         player.sendMessage(Lang.CHAT_TAG
                                 .getServerMessage(ChatColor.RED + "You do not have enough Land Power to claim this!"));
                         return true;
@@ -1338,7 +1339,12 @@ public class GuildCommand implements CommandExecutor {
 
                         GuildModel guild = opGuild.get();
 
-                        for (Chunk chunk : guild.getTerritory()) {
+                        for (String string : guild.getTerritory()) {
+                            Chunk chunk = ChunkUtil.getChunk(string);
+                            if (!chunk.isLoaded()) {
+                                chunk.load();
+                            }
+
                             if (guild.getHome() != null) {
                                 if (guild.getHome().getChunk() == chunk) {
                                     guild.setHome(null);
@@ -1991,7 +1997,7 @@ public class GuildCommand implements CommandExecutor {
                         "/" + ChatColor.GOLD + maxpower,
                 ChatColor.DARK_GRAY + "Land Power" + ChatColor.GRAY + ": " + ChatColor.GOLD +
                         guild.getTerritory().size() + ChatColor.DARK_GRAY + "/" + ChatColor.GOLD +
-                        guild.getMembers().size() * 5,
+                        guild.getMembers().size() * 10,
                 ChatColor.DARK_GRAY + "Allies" + ChatColor.GRAY + ": " + ChatColor.BLUE + "" + allies,
                 ChatColor.DARK_GRAY + "Enemies" + ChatColor.GRAY + ": " + ChatColor.RED + "" + enemies,
                 ChatColor.DARK_GRAY + "Members" + ChatColor.GRAY + ": " + ChatColor.RED + "" + members,

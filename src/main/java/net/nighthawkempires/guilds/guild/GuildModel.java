@@ -24,7 +24,7 @@ public class GuildModel implements Model {
     private UUID leader;
     private List<UUID> members;
     private List<UUID> invites;
-    private List<Chunk> territory;
+    private List<String> territory;
     private ConcurrentMap<UUID, RelationType> relations;
 
     public GuildModel(UUID uuid, String name, UUID leader) {
@@ -127,22 +127,22 @@ public class GuildModel implements Model {
     }
 
     @Deprecated
-    public List<Chunk> getTerritory() {
+    public List<String> getTerritory() {
         return territory;
     }
 
-    public void setTerritory(List<Chunk> territory) {
+    public void setTerritory(List<String> territory) {
         this.territory = Lists.newArrayList(territory);
         NEGuilds.getGuildRegistry().register(this);
     }
 
     public void addTerritory(Chunk chunk) {
-        territory.add(chunk);
+        territory.add(ChunkUtil.getChunkString(chunk));
         NEGuilds.getGuildRegistry().register(this);
     }
 
     public void removeTerritory(Chunk chunk) {
-        territory.remove(chunk);
+        territory.remove(ChunkUtil.getChunkString(chunk));
         NEGuilds.getGuildRegistry().register(this);
     }
 
@@ -219,9 +219,7 @@ public class GuildModel implements Model {
         List<String> chunks = (List) data.getListNullable("territory");
         territory = new ArrayList<>();
         if (chunks != null) {
-            for (String chunk : chunks) {
-                territory.add(ChunkUtil.getChunk(chunk));
-            }
+            territory.addAll(chunks);
         }
 
         relations = new ConcurrentHashMap<>();
@@ -269,13 +267,7 @@ public class GuildModel implements Model {
         map.put("members", members.stream().map(UUID::toString).collect(Collectors.toList()));
         map.put("invites", invites.stream().map(UUID::toString).collect(Collectors.toList()));
 
-        List<String> chunks = new ArrayList<>();
-        for (Chunk chunk : territory) {
-            if (chunk != null) {
-                chunks.add(ChunkUtil.getChunkString(chunk));
-            }
-        }
-        map.put("territory", chunks);
+        map.put("territory", territory);
 
         Map<String, Object> relateMap = new HashMap<>();
         for (UUID guildId : relations.keySet()) {
