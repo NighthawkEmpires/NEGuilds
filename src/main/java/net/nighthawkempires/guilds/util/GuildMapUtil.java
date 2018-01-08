@@ -15,7 +15,7 @@ import java.util.Optional;
 
 public class GuildMapUtil {
 
-    private final static int IMAGE_SIZE = 512;
+    private final static int IMAGE_SIZE = 1024;
 
     private static Chunk topLeft;
     private static Chunk center;
@@ -68,8 +68,11 @@ public class GuildMapUtil {
     }
 
     public static void sendGuildMap(Player player) {
-        // Give the map
-        player.getInventory().setItemInMainHand(new ItemStackBuilder(Material.MAP).displayName("Guild Map").build());
+        // Give the map TODO
+        if (!player.getInventory().getItemInMainHand().getItemMeta().getDisplayName().equals("Guild Map")) {
+            player.getInventory()
+                    .setItemInMainHand(new ItemStackBuilder(Material.MAP).displayName("Guild Map").build());
+        }
 
         // Send image to map
         MapWrapper mapWrapper = NEGuilds.getMapManager().wrapImage(getGuildMapImage(player));
@@ -84,10 +87,10 @@ public class GuildMapUtil {
         BufferedImage guildMap = new BufferedImage(IMAGE_SIZE, IMAGE_SIZE, BufferedImage.TYPE_INT_RGB);
 
         // Decide the the min and max
-        int minX = player.getLocation().getChunk().getX() - 14;
-        int maxX = player.getLocation().getChunk().getX() + 15;
-        int minZ = player.getLocation().getChunk().getZ() - 14;
-        int maxZ = player.getLocation().getChunk().getZ() + 15;
+        int minX = player.getLocation().getChunk().getX() - 28;
+        int maxX = player.getLocation().getChunk().getX() + 30;
+        int minZ = player.getLocation().getChunk().getZ() - 28;
+        int maxZ = player.getLocation().getChunk().getZ() + 30;
         for (int x = minX; x < maxX; x++) {
             for (int z = minZ; z < maxZ; z++) {
                 // Color to draw
@@ -100,8 +103,8 @@ public class GuildMapUtil {
                     GuildModel guild = opGuild.get();
                     color = ColorUtil.getColor(guild.getColor());
                     Graphics g = guildMap.getGraphics();
-                    g.setFont(g.getFont().deriveFont(5f));
-                    g.drawString(guild.getName().substring(0, 1).toUpperCase(), x * 4, z * 4);
+                    g.setFont(g.getFont().deriveFont(10f));
+                    g.drawString(guild.getName().substring(0, 1).toUpperCase(), x * 8, z * 8);
                     g.dispose();
                 }
 
@@ -117,9 +120,9 @@ public class GuildMapUtil {
         }
 
         // Draw the player
-        for (int i = 0; i < 2; i++) {
-            for (int j = 0; j < 2; j++) {
-                guildMap.setRGB(255 + i, 255 + j, Color.WHITE.getRGB());
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                guildMap.setRGB(510 + i, 510 + j, Color.WHITE.getRGB());
             }
         }
 
