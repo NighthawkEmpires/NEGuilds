@@ -1,11 +1,11 @@
 package net.nighthawkempires.guilds.guild;
 
+import com.demigodsrpg.util.datasection.AbstractRegistry;
 import com.demigodsrpg.util.datasection.DataSection;
 import com.google.common.collect.ImmutableList;
 import net.nighthawkempires.core.NECore;
 import net.nighthawkempires.core.utils.ChunkUtil;
 import net.nighthawkempires.guilds.NEGuilds;
-import net.nighthawkempires.guilds.data.AbstractRegistry;
 import org.bukkit.Chunk;
 
 import java.util.*;

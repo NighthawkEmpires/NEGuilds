@@ -1,9 +1,9 @@
 package net.nighthawkempires.guilds.guild;
 
 import com.demigodsrpg.util.datasection.DataSection;
+import com.demigodsrpg.util.datasection.Model;
 import com.google.common.collect.*;
 import net.nighthawkempires.core.utils.ChunkUtil;
-import net.nighthawkempires.guilds.Model;
 import net.nighthawkempires.guilds.NEGuilds;
 import net.nighthawkempires.guilds.guild.relation.RelationType;
 import org.bukkit.*;

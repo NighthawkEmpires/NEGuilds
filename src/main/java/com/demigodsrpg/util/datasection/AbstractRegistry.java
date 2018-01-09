@@ -20,15 +20,12 @@
  * SOFTWARE.
  */
 
-package net.nighthawkempires.guilds.data;
+package com.demigodsrpg.util.datasection;
 
-import com.demigodsrpg.util.datasection.DataSection;
-import com.demigodsrpg.util.datasection.FJsonSection;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.nighthawkempires.guilds.Model;
 
 import java.io.*;
 import java.util.Map;
