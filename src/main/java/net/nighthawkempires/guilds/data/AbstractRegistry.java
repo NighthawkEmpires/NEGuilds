@@ -40,21 +40,18 @@ import java.util.concurrent.TimeUnit;
 public abstract class AbstractRegistry<T extends Model> {
     protected final Cache<String, T> REGISTERED_DATA;
 
-    // -- SQL -- //
-
-    private String TABLE;
-
     // -- FILE -- //
     private File FOLDER;
     private boolean PRETTY;
 
-    public AbstractRegistry(String table) {
-        REGISTERED_DATA = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(3, TimeUnit.MINUTES).build();
-        TABLE = table;
-    }
-
-    public AbstractRegistry(String path, String folder, boolean pretty) {
-        REGISTERED_DATA = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(3, TimeUnit.MINUTES).build();
+    public AbstractRegistry(String path, String folder, boolean pretty, int expireMins) {
+        if (expireMins > 0) {
+            REGISTERED_DATA =
+                    CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(expireMins, TimeUnit.MINUTES)
+                            .build();
+        } else {
+            REGISTERED_DATA = CacheBuilder.newBuilder().concurrencyLevel(4).build();
+        }
         FOLDER = new File(path + "/" + folder + "/");
         PRETTY = pretty;
     }

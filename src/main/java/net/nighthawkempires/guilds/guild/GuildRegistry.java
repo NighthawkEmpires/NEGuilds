@@ -38,7 +38,7 @@ public class GuildRegistry extends AbstractRegistry<GuildModel> {
     }
 
     public GuildRegistry(String path) {
-        super(path, FILE_NAME, SAVE_PRETTY);
+        super(path, FILE_NAME, SAVE_PRETTY, 0);
     }
 
     @Override
