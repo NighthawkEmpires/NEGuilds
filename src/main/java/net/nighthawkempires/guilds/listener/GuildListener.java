@@ -63,7 +63,10 @@ public class GuildListener implements Listener {
         }
 
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-            if (player.getInventory().getItemInMainHand().getType() == Material.ARMOR_STAND || player.getInventory().getItemInOffHand().getType() == Material.ARMOR_STAND) {
+            if (player.getInventory().getItemInMainHand().getType() == Material.ARMOR_STAND ||
+                    player.getInventory().getItemInOffHand().getType() == Material.ARMOR_STAND ||
+                    player.getInventory().getItemInMainHand().getType() == Material.ITEM_FRAME ||
+                    player.getInventory().getItemInOffHand().getType() == Material.ITEM_FRAME) {
                 if (notAllowedBuild(chunk, player, user)) {
                     event.setCancelled(true);
                 }
