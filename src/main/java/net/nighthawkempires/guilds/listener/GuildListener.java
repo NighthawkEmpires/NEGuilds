@@ -70,6 +70,43 @@ public class GuildListener implements Listener {
     }
 
     @EventHandler
+    public void onInteract(PlayerInteractEntityEvent event) {
+        Player player = event.getPlayer();
+        User user = NEGuilds.getUserManager().getUser(player.getUniqueId());
+
+        Chunk chunk = player.getLocation().getChunk();
+        if (isInteractiveEntity(event.getRightClicked().getType().name())) {
+            Optional<GuildModel> opGuild = NEGuilds.getGuildRegistry().getGuild(chunk);
+            if (opGuild.isPresent()) {
+                GuildModel guild = opGuild.get();
+                if (!NEGuilds.getGuildTempData().adminBypass.contains(player.getUniqueId())) {
+                    if (!user.getGuild().isPresent()) {
+                        event.setCancelled(true);
+                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                ChatColor.RED + "You're not allowed to interact inside of " +
+                                        guild.getColor() + guild.getName() + "'s " + ChatColor.RED +
+                                        "territory."));
+                        return;
+                    }
+
+                    GuildModel guildModel = user.getGuild().get();
+                    if (!guildModel.getUUID().toString().equals(guild.getUUID().toString())) {
+                        for (UUID uuid : guildModel.getRelations().keySet()) {
+                            if (guildModel.getRelations().get(uuid) != RelationType.ALLY) {
+                                event.setCancelled(true);
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED + "You're not allowed to interact inside of " +
+                                                guild.getColor() + guild.getName() + "'s " + ChatColor.RED +
+                                                "territory."));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @EventHandler
     public void onMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
         User user = NEGuilds.getUserManager().getUser(player.getUniqueId());
@@ -82,8 +119,8 @@ public class GuildListener implements Listener {
             GuildModel guild = opGuild.get();
             if (!locationMap.containsKey(player) || locationMap.get(player) != guild) {
                 locationMap.put(player, guild);
-                NECore.getCodeHandler().sendTitleToPlayer(player, guild.getColor() + guild.getName() + "'s",
-                        ChatColor.GRAY + "Territory", 10, 30, 10);
+                NECore.getCodeHandler().sendTitleToPlayer(player, guild.getColor() + guild.getName(),
+                        ChatColor.GRAY + guild.getDescription(), 10, 30, 10);
             }
             inTerritory = true;
         }
@@ -171,6 +208,42 @@ public class GuildListener implements Listener {
                 if (notAllowedHurt(damaged, user.getGuild(), damager, duser.getGuild())) {
                     event.setCancelled(true);
                     event.setDamage(0.0);
+                }
+            }
+        }
+
+        if (event.getDamager() instanceof Player) {
+            Player player = (Player) event.getDamager();
+            User user = NEGuilds.getUserManager().getUser(player.getUniqueId());
+
+            Chunk chunk = player.getLocation().getChunk();
+            if (isInteractiveEntity(event.getEntity().getType().name())) {
+                Optional<GuildModel> opGuild = NEGuilds.getGuildRegistry().getGuild(chunk);
+                if (opGuild.isPresent()) {
+                    GuildModel guild = opGuild.get();
+                    if (!NEGuilds.getGuildTempData().adminBypass.contains(player.getUniqueId())) {
+                        if (!user.getGuild().isPresent()) {
+                            event.setCancelled(true);
+                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                    ChatColor.RED + "You're not allowed to interact inside of " +
+                                            guild.getColor() + guild.getName() + "'s " + ChatColor.RED +
+                                            "territory."));
+                            return;
+                        }
+
+                        GuildModel guildModel = user.getGuild().get();
+                        if (!guildModel.getUUID().toString().equals(guild.getUUID().toString())) {
+                            for (UUID uuid : guildModel.getRelations().keySet()) {
+                                if (guildModel.getRelations().get(uuid) != RelationType.ALLY) {
+                                    event.setCancelled(true);
+                                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                            ChatColor.RED + "You're not allowed to interact inside of " +
+                                                    guild.getColor() + guild.getName() + "'s " + ChatColor.RED +
+                                                    "territory."));
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -265,6 +338,17 @@ public class GuildListener implements Listener {
                 Lists.newArrayList("door", "chest", "bed", "gate", "lever", "button", "diode", "comparator", "minecart",
                         "boat", "anvil", "workbench", "furnace", "brewing", "jukebox", "note", "shulker_box", "hopper",
                         "dispenser", "dropper", "enchantment");
+        for (String words : keywords) {
+            if (string.toLowerCase().contains(words.toLowerCase())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isInteractiveEntity(String string) {
+        List<String> keywords =
+                Lists.newArrayList("stand", "frame");
         for (String words : keywords) {
             if (string.toLowerCase().contains(words.toLowerCase())) {
                 return true;
