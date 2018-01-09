@@ -3,9 +3,7 @@ package net.nighthawkempires.guilds;
 import net.nighthawkempires.core.NECore;
 import net.nighthawkempires.core.server.Server;
 import net.nighthawkempires.guilds.command.GuildCommand;
-import net.nighthawkempires.guilds.data.GuildData;
-import net.nighthawkempires.guilds.guild.GuildRegistry;
-import net.nighthawkempires.guilds.guild.GuildTag;
+import net.nighthawkempires.guilds.guild.*;
 import net.nighthawkempires.guilds.listener.*;
 import net.nighthawkempires.guilds.scoreboard.GuildScoreboards;
 import net.nighthawkempires.guilds.task.ChunkBoundaryTask;
@@ -32,7 +30,7 @@ public class NEGuilds extends JavaPlugin {
 
     private static InventoryListener inventoryListener;
 
-    private static GuildData guildData;
+    private static GuildTempData guildData;
 
     private static ChunkBoundaryTask boundaryTask;
 
@@ -52,7 +50,7 @@ public class NEGuilds extends JavaPlugin {
 
         inventoryListener = new InventoryListener();
 
-        guildData = new GuildData();
+        guildData = new GuildTempData();
 
         boundaryTask = new ChunkBoundaryTask();
 
@@ -125,7 +123,7 @@ public class NEGuilds extends JavaPlugin {
         return inventoryListener;
     }
 
-    public static GuildData getGuildData() {
+    public static GuildTempData getGuildTempData() {
         return guildData;
     }
 }

@@ -5,7 +5,6 @@ import com.google.common.collect.Maps;
 import net.nighthawkempires.core.NECore;
 import net.nighthawkempires.core.events.UserDeathEvent;
 import net.nighthawkempires.core.language.Lang;
-import net.nighthawkempires.core.utils.BlockUtil;
 import net.nighthawkempires.guilds.NEGuilds;
 import net.nighthawkempires.guilds.guild.GuildModel;
 import net.nighthawkempires.guilds.guild.relation.RelationType;
@@ -18,9 +17,7 @@ import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.*;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentMap;
 
 public class GuildListener implements Listener {
@@ -38,7 +35,7 @@ public class GuildListener implements Listener {
                 Optional<GuildModel> opGuild = NEGuilds.getGuildRegistry().getGuild(chunk);
                 if (opGuild.isPresent()) {
                     GuildModel guild = opGuild.get();
-                    if (!NEGuilds.getGuildData().adminBypass.contains(player.getUniqueId())) {
+                    if (!NEGuilds.getGuildTempData().adminBypass.contains(player.getUniqueId())) {
                         if (!user.getGuild().isPresent()) {
                             event.setCancelled(true);
                             player.sendMessage(Lang.CHAT_TAG.getServerMessage(
@@ -203,7 +200,7 @@ public class GuildListener implements Listener {
     private boolean notAllowedBuild(Chunk chunk, Player player, User user) {
         Optional<GuildModel> opGuild = NEGuilds.getGuildRegistry().getGuild(chunk);
         if (opGuild.isPresent()) {
-            if (!NEGuilds.getGuildData().adminBypass.contains(player.getUniqueId())) {
+            if (!NEGuilds.getGuildTempData().adminBypass.contains(player.getUniqueId())) {
                 GuildModel guild = opGuild.get();
                 Optional<GuildModel> opUserGuild = user.getGuild();
                 if (!opUserGuild.isPresent()) {
@@ -263,8 +260,10 @@ public class GuildListener implements Listener {
     }
 
     private boolean isInteractiveBlock(String string) {
-        List<String> keywords = Lists.newArrayList("door", "chest", "bed", "gate", "lever", "button", "diode", "comparator", "minecart", "boat", "anvil", "workbench",
-                "furnace", "brewing", "jukebox", "note", "shulker_box", "hopper", "dispenser", "dropper", "enchantment");
+        List<String> keywords =
+                Lists.newArrayList("door", "chest", "bed", "gate", "lever", "button", "diode", "comparator", "minecart",
+                        "boat", "anvil", "workbench", "furnace", "brewing", "jukebox", "note", "shulker_box", "hopper",
+                        "dispenser", "dropper", "enchantment");
         for (String words : keywords) {
             if (string.toLowerCase().contains(words.toLowerCase())) {
                 return true;

@@ -9,7 +9,6 @@ import net.nighthawkempires.guilds.NEGuilds;
 import net.nighthawkempires.guilds.guild.GuildModel;
 import net.nighthawkempires.guilds.guild.rank.RankType;
 import net.nighthawkempires.guilds.guild.relation.RelationType;
-import net.nighthawkempires.guilds.task.ChunkBoundaryTask;
 import net.nighthawkempires.guilds.user.User;
 import net.nighthawkempires.guilds.util.ChunkBoundaryUtil;
 import net.nighthawkempires.guilds.util.GuildMapUtil;
@@ -485,14 +484,14 @@ public class GuildCommand implements CommandExecutor {
                         return true;
                     }
 
-                    if (!NEGuilds.getGuildData().adminBypass.contains(player.getUniqueId())) {
-                        NEGuilds.getGuildData().adminBypass.add(player.getUniqueId());
+                    if (!NEGuilds.getGuildTempData().adminBypass.contains(player.getUniqueId())) {
+                        NEGuilds.getGuildTempData().adminBypass.add(player.getUniqueId());
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                 ChatColor.GRAY + "You have " + ChatColor.GREEN + "" + ChatColor.UNDERLINE + "enabled" +
                                         ChatColor.GRAY + " Admin bypass."));
                         return true;
                     } else {
-                        NEGuilds.getGuildData().adminBypass.remove(player.getUniqueId());
+                        NEGuilds.getGuildTempData().adminBypass.remove(player.getUniqueId());
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                 ChatColor.GRAY + "You have " + ChatColor.RED + "" + ChatColor.UNDERLINE + "disabled" +
                                         ChatColor.GRAY + " Admin bypass."));
@@ -556,10 +555,12 @@ public class GuildCommand implements CommandExecutor {
                     GuildMapUtil.sendGuildMap(player);
                 } else if (args[0].toLowerCase().equals("seechunks") || args[0].toLowerCase().equals("sc")) {
                     if (!ChunkBoundaryUtil.showingBoundaries.contains(player.getUniqueId())) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "Now showing chunk boundaries around you."));
+                        player.sendMessage(Lang.CHAT_TAG
+                                .getServerMessage(ChatColor.GRAY + "Now showing chunk boundaries around you."));
                         ChunkBoundaryUtil.startChunkBoundaries(player);
                     } else {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "No longer showing chunk boundaries."));
+                        player.sendMessage(
+                                Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "No longer showing chunk boundaries."));
                         ChunkBoundaryUtil.stopChunkBoundaries(player);
                     }
                 } else {

@@ -4,7 +4,8 @@ import com.google.common.collect.Lists;
 import net.nighthawkempires.core.language.Lang;
 import net.nighthawkempires.guilds.NEGuilds;
 import net.nighthawkempires.guilds.guild.GuildModel;
-import org.bukkit.*;
+import org.bukkit.ChatColor;
+import org.bukkit.Chunk;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -26,7 +27,9 @@ public class GuildMapUtil {
             } else {
                 builder.append(ChatColor.DARK_GRAY).append("_________");
             }
-            for (int x = player.getLocation().getChunk().getX() - 15; x <= player.getLocation().getChunk().getX() + 15; x++) {
+            for (int x = player.getLocation().getChunk().getX() - 15;
+                    x <= player.getLocation().getChunk().getX() + 15;
+                    x++) {
                 String symbol = ChatColor.GRAY + "-";
                 Chunk chunk = player.getWorld().getChunkAt(x, z);
 
@@ -56,12 +59,16 @@ public class GuildMapUtil {
         player.sendMessage(Lang.FOOTER.getMessage());
 
         StringBuilder guildBuilder = new StringBuilder();
-        guildBuilder.append(ChatColor.WHITE).append("*").append(ChatColor.DARK_GRAY).append(" - ").append(ChatColor.WHITE).append("You").append(ChatColor.DARK_GRAY).append(", ");
+        guildBuilder.append(ChatColor.WHITE).append("*").append(ChatColor.DARK_GRAY).append(" - ")
+                .append(ChatColor.WHITE).append("You").append(ChatColor.DARK_GRAY).append(", ");
         if (!guilds.isEmpty()) {
-            guilds.forEach(guildModel -> guildBuilder.append(guildModel.getColor()).append(guildModel.getName().substring(0, 1).toUpperCase()).append(ChatColor.DARK_GRAY).append(
-                    " - ").append(guildModel.getColor()).append(guildModel.getName()).append(ChatColor.DARK_GRAY).append(", "));
+            guilds.forEach(guildModel -> guildBuilder.append(guildModel.getColor())
+                    .append(guildModel.getName().substring(0, 1).toUpperCase()).append(ChatColor.DARK_GRAY).append(
+                            " - ").append(guildModel.getColor()).append(guildModel.getName())
+                    .append(ChatColor.DARK_GRAY).append(", "));
         }
-        player.sendMessage(ChatColor.DARK_GRAY + "Keys" + ChatColor.GRAY + ": " + guildBuilder.toString().substring(0, guildBuilder.length() - 2));
+        player.sendMessage(ChatColor.DARK_GRAY + "Keys" + ChatColor.GRAY + ": " +
+                guildBuilder.toString().substring(0, guildBuilder.length() - 2));
         player.sendMessage(Lang.FOOTER.getMessage());
     }
 }
