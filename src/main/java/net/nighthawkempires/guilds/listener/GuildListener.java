@@ -52,6 +52,7 @@ public class GuildListener implements Listener {
                         if (!guildModel.getUUID().toString().equals(guild.getUUID().toString())) {
                             for (UUID uuid : guildModel.getRelations().keySet()) {
                                 if (guildModel.getRelations().get(uuid) != RelationType.ALLY) {
+                                    event.setCancelled(true);
                                     player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                             ChatColor.RED + "You're not allowed to interact inside of " +
                                                     guild.getColor() + guild.getName() + "'s " + ChatColor.RED +
