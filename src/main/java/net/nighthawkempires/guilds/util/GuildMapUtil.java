@@ -58,10 +58,8 @@ public class GuildMapUtil {
         StringBuilder guildBuilder = new StringBuilder();
         guildBuilder.append(ChatColor.WHITE).append("*").append(ChatColor.DARK_GRAY).append(" - ").append(ChatColor.WHITE).append("You").append(ChatColor.DARK_GRAY).append(", ");
         if (!guilds.isEmpty()) {
-            for (GuildModel guildModel : guilds) {
-                guildBuilder.append(guildModel.getColor()).append(guildModel.getName().substring(0, 1).toUpperCase()).append(ChatColor.DARK_GRAY).append(
-                        " - ").append(guildModel.getColor()).append(guildModel.getName()).append(ChatColor.DARK_GRAY).append(", ");
-            }
+            guilds.forEach(guildModel -> guildBuilder.append(guildModel.getColor()).append(guildModel.getName().substring(0, 1).toUpperCase()).append(ChatColor.DARK_GRAY).append(
+                    " - ").append(guildModel.getColor()).append(guildModel.getName()).append(ChatColor.DARK_GRAY).append(", "));
         }
         player.sendMessage(ChatColor.DARK_GRAY + "Keys" + ChatColor.GRAY + ": " + guildBuilder.toString().substring(0, guildBuilder.length() - 2));
         player.sendMessage(Lang.FOOTER.getMessage());

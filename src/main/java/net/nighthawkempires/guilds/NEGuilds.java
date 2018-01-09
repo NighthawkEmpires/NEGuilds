@@ -8,6 +8,7 @@ import net.nighthawkempires.guilds.guild.GuildRegistry;
 import net.nighthawkempires.guilds.guild.GuildTag;
 import net.nighthawkempires.guilds.listener.*;
 import net.nighthawkempires.guilds.scoreboard.GuildScoreboards;
+import net.nighthawkempires.guilds.task.ChunkBoundaryTask;
 import net.nighthawkempires.guilds.user.User;
 import net.nighthawkempires.guilds.user.UserManager;
 import org.bukkit.Bukkit;
@@ -15,6 +16,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.inventivetalent.mapmanager.MapManagerPlugin;
 import org.inventivetalent.mapmanager.manager.MapManager;
 
@@ -31,6 +33,8 @@ public class NEGuilds extends JavaPlugin {
     private static InventoryListener inventoryListener;
 
     private static GuildData guildData;
+
+    private static ChunkBoundaryTask boundaryTask;
 
     public void onEnable() {
         if (NECore.getSettings().server != Server.SUR) {
@@ -50,6 +54,8 @@ public class NEGuilds extends JavaPlugin {
 
         guildData = new GuildData();
 
+        boundaryTask = new ChunkBoundaryTask();
+
         NECore.getChatFormat().add(new GuildTag());
         NECore.getScoreboardManager().addScoreboard(new GuildScoreboards());
 
@@ -64,6 +70,9 @@ public class NEGuilds extends JavaPlugin {
                 }
             }
         }, 6000, 6000);
+
+        BukkitRunnable runnable = boundaryTask;
+        runnable.runTaskTimer(this, 0, 10);
 
         registerCommands();
         registerListeners();
