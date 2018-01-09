@@ -1,5 +1,6 @@
 package net.nighthawkempires.guilds.listener;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.nighthawkempires.core.NECore;
 import net.nighthawkempires.core.events.UserDeathEvent;
@@ -17,6 +18,7 @@ import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.*;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
@@ -32,30 +34,28 @@ public class GuildListener implements Listener {
 
         Chunk chunk = player.getLocation().getChunk();
         if (event.getAction() == Action.LEFT_CLICK_BLOCK || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-            for (Material material : BlockUtil.interactiveBlocks) {
-                if (material.name().equals(event.getClickedBlock().getType().name())) {
-                    Optional<GuildModel> opGuild = NEGuilds.getGuildRegistry().getGuild(chunk);
-                    if (opGuild.isPresent()) {
-                        GuildModel guild = opGuild.get();
-                        if (!NEGuilds.getGuildData().adminBypass.contains(player.getUniqueId())) {
-                            if (!user.getGuild().isPresent()) {
-                                event.setCancelled(true);
-                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                        ChatColor.RED + "You're not allowed to interact inside of " +
-                                                guild.getColor() + guild.getName() + "'s " + ChatColor.RED +
-                                                "territory."));
-                                return;
-                            }
+            if (isInteractiveBlock(event.getClickedBlock().getType().name())) {
+                Optional<GuildModel> opGuild = NEGuilds.getGuildRegistry().getGuild(chunk);
+                if (opGuild.isPresent()) {
+                    GuildModel guild = opGuild.get();
+                    if (!NEGuilds.getGuildData().adminBypass.contains(player.getUniqueId())) {
+                        if (!user.getGuild().isPresent()) {
+                            event.setCancelled(true);
+                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                    ChatColor.RED + "You're not allowed to interact inside of " +
+                                            guild.getColor() + guild.getName() + "'s " + ChatColor.RED +
+                                            "territory."));
+                            return;
+                        }
 
-                            GuildModel guildModel = user.getGuild().get();
-                            if (!guildModel.getUUID().toString().equals(guild.getUUID().toString())) {
-                                for (UUID uuid : guildModel.getRelations().keySet()) {
-                                    if (guildModel.getRelations().get(uuid) != RelationType.ALLY) {
-                                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                                ChatColor.RED + "You're not allowed to interact inside of " +
-                                                        guild.getColor() + guild.getName() + "'s " + ChatColor.RED +
-                                                        "territory."));
-                                    }
+                        GuildModel guildModel = user.getGuild().get();
+                        if (!guildModel.getUUID().toString().equals(guild.getUUID().toString())) {
+                            for (UUID uuid : guildModel.getRelations().keySet()) {
+                                if (guildModel.getRelations().get(uuid) != RelationType.ALLY) {
+                                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                            ChatColor.RED + "You're not allowed to interact inside of " +
+                                                    guild.getColor() + guild.getName() + "'s " + ChatColor.RED +
+                                                    "territory."));
                                 }
                             }
                         }
@@ -259,6 +259,17 @@ public class GuildListener implements Listener {
             }
         }
 
+        return false;
+    }
+
+    private boolean isInteractiveBlock(String string) {
+        List<String> keywords = Lists.newArrayList("door", "chest", "bed", "gate", "lever", "button", "diode", "comparator", "minecart", "boat", "anvil", "workbench",
+                "furnace", "brewing", "jukebox", "note", "shulker_box", "hopper", "dispenser", "dropper", "enchantment");
+        for (String words : keywords) {
+            if (string.toLowerCase().contains(words.toLowerCase())) {
+                return true;
+            }
+        }
         return false;
     }
 }
