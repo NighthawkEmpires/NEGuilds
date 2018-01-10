@@ -5,9 +5,9 @@ import com.google.common.collect.Maps;
 import net.nighthawkempires.core.NECore;
 import net.nighthawkempires.core.events.UserDeathEvent;
 import net.nighthawkempires.core.language.Lang;
+import net.nighthawkempires.core.utils.ChunkUtil;
 import net.nighthawkempires.guilds.NEGuilds;
 import net.nighthawkempires.guilds.guild.GuildModel;
-import net.nighthawkempires.guilds.guild.relation.RelationType;
 import net.nighthawkempires.guilds.user.User;
 import org.bukkit.*;
 import org.bukkit.entity.*;
@@ -17,7 +17,8 @@ import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.*;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentMap;
 
 public class GuildListener implements Listener {
@@ -47,14 +48,12 @@ public class GuildListener implements Listener {
 
                         GuildModel guildModel = user.getGuild().get();
                         if (!guildModel.getUUID().toString().equals(guild.getUUID().toString())) {
-                            for (UUID uuid : guildModel.getRelations().keySet()) {
-                                if (guildModel.getRelations().get(uuid) != RelationType.ALLY) {
-                                    event.setCancelled(true);
-                                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                            ChatColor.RED + "You're not allowed to interact inside of " +
-                                                    guild.getColor() + guild.getName() + "'s " + ChatColor.RED +
-                                                    "territory."));
-                                }
+                            if (guildModel.isAlly(guild)) {
+                                event.setCancelled(true);
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED + "You're not allowed to interact inside of " +
+                                                guild.getColor() + guild.getName() + "'s " + ChatColor.RED +
+                                                "territory."));
                             }
                         }
                     }
@@ -102,14 +101,12 @@ public class GuildListener implements Listener {
 
                     GuildModel guildModel = user.getGuild().get();
                     if (!guildModel.getUUID().toString().equals(guild.getUUID().toString())) {
-                        for (UUID uuid : guildModel.getRelations().keySet()) {
-                            if (guildModel.getRelations().get(uuid) != RelationType.ALLY) {
-                                event.setCancelled(true);
-                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                        ChatColor.RED + "You're not allowed to interact inside of " +
-                                                guild.getColor() + guild.getName() + "'s " + ChatColor.RED +
-                                                "territory."));
-                            }
+                        if (guildModel.isAlly(guild)) {
+                            event.setCancelled(true);
+                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                    ChatColor.RED + "You're not allowed to interact inside of " +
+                                            guild.getColor() + guild.getName() + "'s " + ChatColor.RED +
+                                            "territory."));
                         }
                     }
                 }
@@ -244,14 +241,12 @@ public class GuildListener implements Listener {
 
                         GuildModel guildModel = user.getGuild().get();
                         if (!guildModel.getUUID().toString().equals(guild.getUUID().toString())) {
-                            for (UUID uuid : guildModel.getRelations().keySet()) {
-                                if (guildModel.getRelations().get(uuid) != RelationType.ALLY) {
-                                    event.setCancelled(true);
-                                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                            ChatColor.RED + "You're not allowed to interact inside of " +
-                                                    guild.getColor() + guild.getName() + "'s " + ChatColor.RED +
-                                                    "territory."));
-                                }
+                            if (guildModel.isAlly(guild)) {
+                                event.setCancelled(true);
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED + "You're not allowed to interact inside of " +
+                                                guild.getColor() + guild.getName() + "'s " + ChatColor.RED +
+                                                "territory."));
                             }
                         }
                     }
@@ -281,16 +276,12 @@ public class GuildListener implements Listener {
                     }
 
                     GuildModel guildModel = user.getGuild().get();
-                    if (!guildModel.getUUID().toString().equals(guild.getUUID().toString())) {
-                        for (UUID uuid : guildModel.getRelations().keySet()) {
-                            if (guildModel.getRelations().get(uuid) != RelationType.ALLY) {
-                                event.setCancelled(true);
-                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                        ChatColor.RED + "You're not allowed to interact inside of " +
-                                                guild.getColor() + guild.getName() + "'s " + ChatColor.RED +
-                                                "territory."));
-                            }
-                        }
+                    if (guildModel.isAlly(guild)) {
+                        event.setCancelled(true);
+                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                ChatColor.RED + "You're not allowed to interact inside of " +
+                                        guild.getColor() + guild.getName() + "'s " + ChatColor.RED +
+                                        "territory."));
                     }
                 }
             }
@@ -363,14 +354,14 @@ public class GuildListener implements Listener {
                             ChatColor.RED + "You're not allowed to hurt players you're in a truce with!"));
                     return true;
                 } else if (userGuild.isNeutral(damagerGuild)) {
-                    if (userGuild.getTerritory().contains(damaged.getLocation().getChunk())) {
+                    if (userGuild.getTerritory().contains(ChunkUtil.getChunkString(damaged.getLocation().getChunk()))) {
                         damager.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED +
                                 "You're not allowed to hurt players in their own territory while neutral!"));
                         return true;
                     }
                 }
             } else {
-                if (userGuild.getTerritory().contains(damaged.getLocation().getChunk())) {
+                if (userGuild.getTerritory().contains(ChunkUtil.getChunkString(damaged.getLocation().getChunk()))) {
                     damager.sendMessage(Lang.CHAT_TAG.getServerMessage(
                             ChatColor.RED + "You're not allowed to hurt players in their own territory!"));
                     return true;
