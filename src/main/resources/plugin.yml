@@ -1,8 +1,8 @@
 name: NEGuilds
 main: net.nighthawkempires.guilds.NEGuilds
-version: 1.0_a
+version: 1.71_c
 description: Guilds plugin for Nighthawk Empires.
-authors: [NoneVale_]
+authors: [NoneVale_, HQM]
 depend: [NECore]
 softdepend: [NEEssentials]
 commands:
