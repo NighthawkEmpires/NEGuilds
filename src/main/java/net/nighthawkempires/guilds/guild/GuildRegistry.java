@@ -1,8 +1,9 @@
 package net.nighthawkempires.guilds.guild;
 
-import com.demigodsrpg.util.datasection.AbstractRegistry;
+import com.demigodsrpg.util.datasection.AbstractMongoRegistry;
 import com.demigodsrpg.util.datasection.DataSection;
 import com.google.common.collect.ImmutableList;
+import com.mongodb.client.MongoDatabase;
 import net.nighthawkempires.core.NECore;
 import net.nighthawkempires.core.utils.ChunkUtil;
 import net.nighthawkempires.guilds.NEGuilds;
@@ -10,9 +11,8 @@ import org.bukkit.Chunk;
 
 import java.util.*;
 
-public class GuildRegistry extends AbstractRegistry<GuildModel> {
-    private static final boolean SAVE_PRETTY = true;
-    private static final String FILE_NAME = "guilds";
+public class GuildRegistry extends AbstractMongoRegistry<GuildModel> {
+    private static final String COLLECTION_NAME = "guilds";
     private static final ImmutableList<String> BANNED_WORDS;
 
     static {
@@ -37,12 +37,12 @@ public class GuildRegistry extends AbstractRegistry<GuildModel> {
         BANNED_WORDS = ImmutableList.copyOf(banned);
     }
 
-    public GuildRegistry(String path) {
-        super(path, FILE_NAME, SAVE_PRETTY, 0);
+    public GuildRegistry(MongoDatabase database, int expireInMins) {
+        super(database.getCollection(COLLECTION_NAME), expireInMins);
     }
 
     @Override
-    protected GuildModel fromDataSection(String stringKey, DataSection data) {
+    public GuildModel fromDataSection(String stringKey, DataSection data) {
         return new GuildModel(stringKey, data);
     }
 

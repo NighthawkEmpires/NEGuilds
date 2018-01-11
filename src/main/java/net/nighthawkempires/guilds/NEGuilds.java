@@ -1,5 +1,8 @@
 package net.nighthawkempires.guilds;
 
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
+import com.mongodb.client.MongoDatabase;
 import net.nighthawkempires.core.NECore;
 import net.nighthawkempires.core.server.Server;
 import net.nighthawkempires.guilds.command.GuildCommand;
@@ -21,9 +24,11 @@ import org.inventivetalent.mapmanager.manager.MapManager;
 public class NEGuilds extends JavaPlugin {
 
     private static Plugin plugin;
-    static NEGuilds instance;
+    private static NEGuilds instance;
 
+    private static MongoDatabase mongoDatabase;
     private static GuildRegistry guildRegistry;
+
     private static PluginManager pluginManager;
     private static UserManager userManager;
     private static MapManager mapManager;
@@ -43,7 +48,10 @@ public class NEGuilds extends JavaPlugin {
         plugin = this;
         instance = this;
 
-        guildRegistry = new GuildRegistry(NECore.getFileManager().getGuildDirectory().getPath());
+        MongoClientURI mongoUri = new MongoClientURI("mongodb://localhost:27017");
+        mongoDatabase = new MongoClient(mongoUri).getDatabase("ne_guilds");
+        guildRegistry = new GuildRegistry(mongoDatabase, 0);
+
         pluginManager = Bukkit.getPluginManager();
         userManager = new UserManager();
         mapManager = ((MapManagerPlugin) Bukkit.getPluginManager().getPlugin("MapManager")).getMapManager();
