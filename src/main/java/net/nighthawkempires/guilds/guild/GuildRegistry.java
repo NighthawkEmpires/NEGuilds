@@ -1,6 +1,6 @@
 package net.nighthawkempires.guilds.guild;
 
-import com.demigodsrpg.util.datasection.AbstractRegistry;
+import com.demigodsrpg.util.datasection.AbstractFileRegistry;
 import com.demigodsrpg.util.datasection.DataSection;
 import com.google.common.collect.ImmutableList;
 import net.nighthawkempires.core.NECore;
@@ -10,7 +10,7 @@ import org.bukkit.Chunk;
 
 import java.util.*;
 
-public class GuildRegistry extends AbstractRegistry<GuildModel> {
+public class GuildRegistry extends AbstractFileRegistry<GuildModel> {
     private static final boolean SAVE_PRETTY = true;
     private static final String FILE_NAME = "guilds";
     private static final ImmutableList<String> BANNED_WORDS;
@@ -42,7 +42,7 @@ public class GuildRegistry extends AbstractRegistry<GuildModel> {
     }
 
     @Override
-    protected GuildModel fromDataSection(String stringKey, DataSection data) {
+    public GuildModel fromDataSection(String stringKey, DataSection data) {
         return new GuildModel(stringKey, data);
     }
 

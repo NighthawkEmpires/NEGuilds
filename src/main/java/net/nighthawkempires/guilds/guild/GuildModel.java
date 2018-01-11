@@ -224,7 +224,7 @@ public class GuildModel implements Model {
 
         relations = new ConcurrentHashMap<>();
         @SuppressWarnings("unchecked")
-        Map<String, String> relateMap = (Map) data.getNullable("relations");
+        Map<String, String> relateMap = (Map) data.getRawNullable("relations");
         if (relateMap != null) {
             for (Map.Entry<String, String> entry : relateMap.entrySet()) {
                 RelationType type = RelationType.valueOf(entry.getValue().toUpperCase());
