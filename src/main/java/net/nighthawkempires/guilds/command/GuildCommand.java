@@ -1808,6 +1808,12 @@ public class GuildCommand implements CommandExecutor {
             }
         } else if (sender instanceof ConsoleCommandSender) {
             ConsoleCommandSender console = (ConsoleCommandSender) sender;
+            if (args.length > 1 && args[0].equalsIgnoreCase("purge")) { // TODO VERY UNSAFE
+                console.sendMessage(
+                        Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "Let the purge begin!"));
+                NEGuilds.getGuildRegistry().purge();
+                return true;
+            }
             console.sendMessage(
                     Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "This command is not available from the console!"));
             return true;
