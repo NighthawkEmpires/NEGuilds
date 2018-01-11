@@ -1,7 +1,6 @@
 package net.nighthawkempires.guilds;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
+import com.mongodb.*;
 import com.mongodb.client.MongoDatabase;
 import net.nighthawkempires.core.NECore;
 import net.nighthawkempires.core.server.Server;
@@ -48,8 +47,10 @@ public class NEGuilds extends JavaPlugin {
         plugin = this;
         instance = this;
 
-        MongoClientURI mongoUri = new MongoClientURI("mongodb://localhost:27017");
-        mongoDatabase = new MongoClient(mongoUri).getDatabase("ne_guilds");
+        ServerAddress address = new ServerAddress("localhost", 27017);
+        MongoCredential credential = MongoCredential.createCredential("username", "database", "password".toCharArray());
+        mongoDatabase =
+                new MongoClient(address, credential, new MongoClientOptions.Builder().build()).getDatabase("ne_guilds");
         guildRegistry = new GuildRegistry(mongoDatabase, 0);
 
         pluginManager = Bukkit.getPluginManager();
