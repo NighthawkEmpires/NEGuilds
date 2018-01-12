@@ -30,7 +30,7 @@ public class UserModel implements Model {
             guild = UUID.fromString(data.getString("guild"));
         }
         if (data.isString("rank")) {
-            rank = GuildRank.valueOf(data.getString("rank"));
+            rank = GuildRank.valueOf(data.getString("rank").toUpperCase());
         }
         power = data.getInt("power");
     }
@@ -104,7 +104,7 @@ public class UserModel implements Model {
             map.put("guild", guild.toString());
         }
         if (rank != null) {
-            map.put("rank", rank.name());
+            map.put("rank", rank.name().toUpperCase());
         }
         map.put("power", power);
         return map;
