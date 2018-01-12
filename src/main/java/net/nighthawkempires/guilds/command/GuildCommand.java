@@ -320,7 +320,7 @@ public class GuildCommand implements CommandExecutor {
                     }
 
                     Chunk chunk = player.getLocation().getChunk();
-                    if (!guild.getTerritory().contains(chunk)) {
+                    if (!guild.getTerritory().contains(ChunkUtil.getChunkString(chunk))) {
                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                 ChatColor.RED + "You must be in your own territory to set the home of the guild!"));
                         return true;
