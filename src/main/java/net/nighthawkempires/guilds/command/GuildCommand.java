@@ -1960,7 +1960,7 @@ public class GuildCommand implements CommandExecutor {
                                     if (temp == user) {
                                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED +
                                                 "You can not change your guild rank unless you transfer leadership of" +
-                                                 " the" +
+                                                " the" +
                                                 " guild!"));
                                         return true;
                                     }
