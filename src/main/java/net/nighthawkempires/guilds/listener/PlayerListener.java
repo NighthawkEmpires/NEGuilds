@@ -1,12 +1,15 @@
 package net.nighthawkempires.guilds.listener;
 
+import net.nighthawkempires.core.NECore;
 import net.nighthawkempires.core.utils.MathUtil;
+import net.nighthawkempires.guilds.NEGuilds;
 import net.nighthawkempires.guilds.guild.GuildModel;
 import net.nighthawkempires.guilds.user.UserModel;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
 
 import java.util.Optional;
 
@@ -14,6 +17,14 @@ import static net.nighthawkempires.guilds.NEGuilds.getUserRegistry;
 
 
 public class PlayerListener implements Listener {
+
+    @EventHandler
+    public void onLogin(PlayerLoginEvent event) {
+        Player player = event.getPlayer();
+        if (!NEGuilds.getUserRegistry().getRegisteredData().containsKey(player.getUniqueId().toString())) {
+            NEGuilds.getUserRegistry().loadFromDb(player.getUniqueId().toString());
+        }
+    }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
