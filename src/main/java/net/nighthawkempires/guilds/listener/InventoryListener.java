@@ -56,15 +56,15 @@ public class InventoryListener implements Listener {
                     }
 
                     player.closeInventory();
-                    if (MathUtil.lessThan(NECore.getUserManager().getUser(player.getUniqueId()).getTokens(), 10)) {
+                    if (MathUtil.lessThan(NECore.getUserRegistry().getUser(player.getUniqueId()).getTokens(), 10)) {
                         player.sendMessage(Lang.CHAT_TAG
                                 .getServerMessage(ChatColor.RED + "You do not have enough tokens to do this!"));
                         return;
                     }
 
                     guild.setColor(color);
-                    NECore.getUserManager().getUser(player.getUniqueId())
-                            .setTokens(NECore.getUserManager().getUser(player.getUniqueId()).getTokens() - 10);
+                    NECore.getUserRegistry().getUser(player.getUniqueId())
+                            .setTokens(NECore.getUserRegistry().getUser(player.getUniqueId()).getTokens() - 10);
                     player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                             ChatColor.GRAY + "You have set the color of your guild to " + color + color.name() +
                                     ChatColor.GRAY + "."));
