@@ -104,7 +104,7 @@ public class UserModel implements Model {
             map.put("guild", guild.toString());
         }
         if (rank != null) {
-            map.put("rank", rank.getName());
+            map.put("rank", rank.name());
         }
         map.put("power", power);
         return map;
