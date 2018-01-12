@@ -54,8 +54,10 @@ public class NEGuilds extends JavaPlugin {
                     new MongoClient(address, credential, new MongoClientOptions.Builder().build())
                             .getDatabase("ne_guilds");
             guildRegistry = new MGuildRegistry(mongoDatabase, 0);
+            NECore.getLoggers().info("MongoDB enabled.");
         } else {
             guildRegistry = new FGuildRegistry(FileDirectory.GUILD_DIRECTORY.getDirectory().getPath());
+            NECore.getLoggers().info("Json file saving enabled.");
         }
 
         pluginManager = Bukkit.getPluginManager();
