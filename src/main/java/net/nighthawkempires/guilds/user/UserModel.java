@@ -41,6 +41,7 @@ public class UserModel implements Model {
 
     public void setName(String name) {
         this.name = name;
+        NEGuilds.getUserRegistry().register(this);
     }
 
     public Optional<GuildModel> getGuild() {
@@ -52,6 +53,7 @@ public class UserModel implements Model {
             throw new NullPointerException("Guild cannot be null.");
         }
         this.guild = guild.getUUID();
+        NEGuilds.getUserRegistry().register(this);
     }
 
     public void setGuild(UUID guildId) {
@@ -59,10 +61,12 @@ public class UserModel implements Model {
             throw new NullPointerException("Guild UUID cannot be null.");
         }
         this.guild = guildId;
+        NEGuilds.getUserRegistry().register(this);
     }
 
     public void removeGuild() {
         guild = null;
+        NEGuilds.getUserRegistry().register(this);
     }
 
     public GuildRank getRank() {
@@ -71,6 +75,7 @@ public class UserModel implements Model {
 
     public void setRank(GuildRank rank) {
         this.rank = rank;
+        NEGuilds.getUserRegistry().register(this);
     }
 
     public int getPower() {
@@ -79,6 +84,7 @@ public class UserModel implements Model {
 
     public void setPower(int power) {
         this.power = power;
+        NEGuilds.getUserRegistry().register(this);
     }
 
     public UUID getUUID() {
