@@ -2053,7 +2053,8 @@ public class GuildCommand implements CommandExecutor {
                         for (GuildModel guild : data.values()) {
                             guildFile.register(guild);
                         }
-                        Lang.CHAT_TAG.getServerMessage(ChatColor.GREEN + "Guild data transferred to file.");
+                        console.sendMessage(
+                                Lang.CHAT_TAG.getServerMessage(ChatColor.GREEN + "Guild data transferred to file."));
                     } else if (args[1].equalsIgnoreCase("mongo")) {
                         GuildRegistry guildMongo = NEGuilds.getGuildRegistry();
                         FGuildRegistry guildFile =
@@ -2063,14 +2064,15 @@ public class GuildCommand implements CommandExecutor {
                         for (GuildModel guild : data.values()) {
                             guildMongo.register(guild);
                         }
-                        Lang.CHAT_TAG.getServerMessage(ChatColor.GREEN + "Guild data transferred to MongoDB.");
+                        console.sendMessage(
+                                Lang.CHAT_TAG.getServerMessage(ChatColor.GREEN + "Guild data transferred to MongoDB."));
                     } else {
-                        Lang.CHAT_TAG
-                                .getServerMessage(ChatColor.RED + "\"" + args[1] + "\" is not a valid database type.");
+                        console.sendMessage(Lang.CHAT_TAG
+                                .getServerMessage(ChatColor.RED + "\"" + args[1] + "\" is not a valid database type."));
                     }
                 } else {
-                    Lang.CHAT_TAG
-                            .getServerMessage(ChatColor.RED + "You must be connected to MongoDB to transfer data.");
+                    console.sendMessage(Lang.CHAT_TAG
+                            .getServerMessage(ChatColor.RED + "You must be connected to MongoDB to transfer data."));
                 }
                 return true;
             }
