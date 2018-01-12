@@ -1,8 +1,8 @@
 package net.nighthawkempires.guilds.user;
 
 import net.nighthawkempires.core.NECore;
+import net.nighthawkempires.core.file.FileFolder;
 import net.nighthawkempires.core.file.FileManager;
-import net.nighthawkempires.core.file.FileType;
 import net.nighthawkempires.guilds.guild.rank.RankType;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -25,7 +25,7 @@ public class UserLoader {
     }
 
     public void load() {
-        if (NECore.getSettings().useSQL) {
+        if (NECore.getSettings().mysqlEnabled) {
             try {
                 PreparedStatement statement = NECore.getMySQL().getConnection().prepareStatement(
                         "SELECT * FROM guilds_data WHERE uuid='" + getUser().getUUID().toString() + "'");
@@ -54,7 +54,7 @@ public class UserLoader {
 
     public FileConfiguration getPlayerFile() {
         if (!fileManager.isFileLoaded(user.getUUID().toString())) {
-            fileManager.loadFile(user.getUUID().toString(), FileType.PLAYER_FILE);
+            fileManager.loadFile(user.getUUID().toString(), FileFolder.PLAYER_PATH);
         }
         return fileManager.getFile(user.getUUID().toString());
     }

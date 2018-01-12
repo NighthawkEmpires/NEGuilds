@@ -101,7 +101,7 @@ public class GuildListener implements Listener {
 
                     GuildModel guildModel = user.getGuild().get();
                     if (!guildModel.getUUID().toString().equals(guild.getUUID().toString())) {
-                        if (guildModel.isAlly(guild)) {
+                        if (!guildModel.isAlly(guild)) {
                             event.setCancelled(true);
                             player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                     ChatColor.RED + "You're not allowed to interact inside of " +
@@ -241,7 +241,7 @@ public class GuildListener implements Listener {
 
                         GuildModel guildModel = user.getGuild().get();
                         if (!guildModel.getUUID().toString().equals(guild.getUUID().toString())) {
-                            if (guildModel.isAlly(guild)) {
+                            if (!guildModel.isAlly(guild)) {
                                 event.setCancelled(true);
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                         ChatColor.RED + "You're not allowed to interact inside of " +
