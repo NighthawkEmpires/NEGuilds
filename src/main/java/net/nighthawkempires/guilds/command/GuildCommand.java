@@ -8,9 +8,8 @@ import net.nighthawkempires.core.utils.MathUtil;
 import net.nighthawkempires.essentials.NEEssentials;
 import net.nighthawkempires.guilds.NEGuilds;
 import net.nighthawkempires.guilds.guild.*;
-import net.nighthawkempires.guilds.guild.rank.RankType;
-import net.nighthawkempires.guilds.guild.relation.RelationType;
-import net.nighthawkempires.guilds.user.User;
+import net.nighthawkempires.guilds.guild.registry.*;
+import net.nighthawkempires.guilds.user.UserModel;
 import net.nighthawkempires.guilds.util.ChunkBoundaryUtil;
 import net.nighthawkempires.guilds.util.GuildMapUtil;
 import org.apache.commons.lang.math.NumberUtils;
@@ -130,7 +129,7 @@ public class GuildCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (sender instanceof Player) {
             Player player = (Player) sender;
-            User user = NEGuilds.getUserManager().getUser(player.getUniqueId());
+            UserModel user = NEGuilds.getUserRegistry().getUser(player.getUniqueId());
 
             if (!sender.hasPermission("ne.guilds")) {
                 player.sendMessage(Lang.NO_PERM.getServerMessage());
@@ -143,7 +142,7 @@ public class GuildCommand implements CommandExecutor {
                 inGuild = false;
             }
 
-            RankType rank = user.getType();
+            GuildRank rank = user.getType();
             switch (args.length) {
                 case 0:
                     if (sender.hasPermission("ne.admin")) {
@@ -165,7 +164,7 @@ public class GuildCommand implements CommandExecutor {
 
                             GuildModel guild = opGuild.get();
 
-                            if (rank != RankType.OFFICER && rank != RankType.LEADER) {
+                            if (rank != GuildRank.OFFICER && rank != GuildRank.LEADER) {
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                         ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
                                 return true;
@@ -193,14 +192,14 @@ public class GuildCommand implements CommandExecutor {
                                 GuildModel guilds = opClaimed.get();
                                 int power = 0;
                                 for (UUID uuid : guild.getMembers()) {
-                                    User temp = NEGuilds.getUserManager().getTempUser(uuid);
+                                    UserModel temp = NEGuilds.getUserRegistry().getUser(uuid);
                                     power = power + temp.getPower();
                                 }
                                 power = power / guild.getMembers().size();
 
                                 int powerRival = 0;
                                 for (UUID uuid : guild.getMembers()) {
-                                    User temp = NEGuilds.getUserManager().getTempUser(uuid);
+                                    UserModel temp = NEGuilds.getUserRegistry().getUser(uuid);
                                     powerRival = powerRival + temp.getPower();
                                 }
                                 powerRival = powerRival / guild.getMembers().size();
@@ -334,7 +333,7 @@ public class GuildCommand implements CommandExecutor {
 
                             GuildModel guild = opGuild.get();
 
-                            if (rank != RankType.OFFICER && rank != RankType.LEADER) {
+                            if (rank != GuildRank.OFFICER && rank != GuildRank.LEADER) {
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                         ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
                                 return true;
@@ -386,7 +385,7 @@ public class GuildCommand implements CommandExecutor {
 
                             if (guild.getMembers().size() == 1 && guild.getMembers().contains(player.getUniqueId())) {
                                 for (UUID uuid : guild.getMembers()) {
-                                    User temp = NEGuilds.getUserManager().getTempUser(uuid);
+                                    UserModel temp = NEGuilds.getUserRegistry().getUser(uuid);
                                     temp.setType(null);
                                     temp.removeGuild();
 
@@ -414,7 +413,7 @@ public class GuildCommand implements CommandExecutor {
                                 return true;
                             }
 
-                            if (rank == RankType.LEADER) {
+                            if (rank == GuildRank.LEADER) {
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED +
                                         "In order to leave the guild, you must pass leadership onto another member of" +
                                         " the" +
@@ -452,7 +451,7 @@ public class GuildCommand implements CommandExecutor {
                                 return true;
                             }
 
-                            if (rank != RankType.LEADER && rank != RankType.OFFICER) {
+                            if (rank != GuildRank.LEADER && rank != GuildRank.OFFICER) {
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                         ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
                                 return true;
@@ -520,7 +519,7 @@ public class GuildCommand implements CommandExecutor {
                                 return true;
                             }
 
-                            if (rank != RankType.LEADER && rank != RankType.OFFICER) {
+                            if (rank != GuildRank.LEADER && rank != GuildRank.OFFICER) {
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                         ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
                                 return true;
@@ -564,7 +563,7 @@ public class GuildCommand implements CommandExecutor {
                                 return true;
                             }
 
-                            if (rank != RankType.LEADER) {
+                            if (rank != GuildRank.LEADER) {
                                 player.sendMessage(Lang.CHAT_TAG
                                         .getServerMessage(
                                                 ChatColor.RED + "You must be the leader of the guild to do this!"));
@@ -574,7 +573,7 @@ public class GuildCommand implements CommandExecutor {
                             GuildModel guild = opGuild.get();
 
                             for (UUID uuid : guild.getMembers()) {
-                                User temp = NEGuilds.getUserManager().getTempUser(uuid);
+                                UserModel temp = NEGuilds.getUserRegistry().getUser(uuid);
                                 temp.setType(null);
                                 temp.removeGuild();
                             }
@@ -677,7 +676,7 @@ public class GuildCommand implements CommandExecutor {
                             UUID uuid = NEGuilds.getGuildRegistry().createGuild(name, player.getUniqueId());
                             GuildModel guild = NEGuilds.getGuildRegistry().getGuild(uuid).get();
                             user.setGuild(uuid);
-                            user.setType(RankType.LEADER);
+                            user.setType(GuildRank.LEADER);
                             player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                     ChatColor.GRAY + "You have created a guild by the name of " + guild.getColor() +
                                             guild.getName() + ChatColor.GRAY + "."));
@@ -783,7 +782,7 @@ public class GuildCommand implements CommandExecutor {
                             }
                             guildd.addMember(player.getUniqueId());
                             user.setGuild(guildd);
-                            user.setType(RankType.RECRUIT);
+                            user.setType(GuildRank.RECRUIT);
                             player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                     ChatColor.GRAY + "You have joined " + guildd.getColor() + guildd.getName() +
                                             ChatColor.GRAY + "."));
@@ -802,7 +801,7 @@ public class GuildCommand implements CommandExecutor {
                                 return true;
                             }
 
-                            if (rank != RankType.OFFICER && rank != RankType.LEADER) {
+                            if (rank != GuildRank.OFFICER && rank != GuildRank.LEADER) {
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                         ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
                                 return true;
@@ -874,10 +873,10 @@ public class GuildCommand implements CommandExecutor {
                             if (NEGuilds.getGuildRegistry().guildExists(args[1])) {
                                 opGuildd = NEGuilds.getGuildRegistry().getGuild(args[1]);
                             } else {
-                                if (NEGuilds.getUserManager()
+                                if (NEGuilds.getUserRegistry()
                                         .userExists(Bukkit.getOfflinePlayer(args[1]).getUniqueId())) {
-                                    opGuildd = NEGuilds.getUserManager()
-                                            .getTempUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
+                                    opGuildd = NEGuilds.getUserRegistry()
+                                            .getUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
                                 }
                             }
 
@@ -899,7 +898,7 @@ public class GuildCommand implements CommandExecutor {
                                 return true;
                             }
 
-                            if (user.getType() != RankType.LEADER && user.getType() != RankType.OFFICER) {
+                            if (user.getType() != GuildRank.LEADER && user.getType() != GuildRank.OFFICER) {
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                         ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
                                 return true;
@@ -909,7 +908,7 @@ public class GuildCommand implements CommandExecutor {
 
                             String name = args[1];
                             OfflinePlayer kickee = Bukkit.getOfflinePlayer(name);
-                            User temp = NEGuilds.getUserManager().getTempUser(kickee.getUniqueId());
+                            UserModel temp = NEGuilds.getUserRegistry().getUser(kickee.getUniqueId());
                             if (kickee.getUniqueId().toString().equals(player.getUniqueId().toString())) {
                                 player.sendMessage(Lang.CHAT_TAG
                                         .getServerMessage(ChatColor.RED + "You can not kick yourself from the guild!"));
@@ -922,14 +921,14 @@ public class GuildCommand implements CommandExecutor {
                                 return true;
                             }
 
-                            if (rank == RankType.OFFICER && temp.getType() == RankType.OFFICER) {
+                            if (rank == GuildRank.OFFICER && temp.getType() == GuildRank.OFFICER) {
                                 player.sendMessage(Lang.CHAT_TAG
                                         .getServerMessage(
                                                 ChatColor.RED + "You can not kick other officers from the guild!"));
                                 return true;
                             }
 
-                            if (rank == RankType.OFFICER && temp.getType() == RankType.LEADER) {
+                            if (rank == GuildRank.OFFICER && temp.getType() == GuildRank.LEADER) {
                                 player.sendMessage(Lang.CHAT_TAG
                                         .getServerMessage(
                                                 ChatColor.RED + "You can not kick the leader from the guild!"));
@@ -968,7 +967,7 @@ public class GuildCommand implements CommandExecutor {
                                 return true;
                             }
 
-                            if (rank != RankType.LEADER) {
+                            if (rank != GuildRank.LEADER) {
                                 player.sendMessage(Lang.CHAT_TAG
                                         .getServerMessage(
                                                 ChatColor.RED + "You must be the leader of the guild to do this!"));
@@ -1024,10 +1023,10 @@ public class GuildCommand implements CommandExecutor {
                             if (NEGuilds.getGuildRegistry().guildExists(args[1])) {
                                 opGuildd = NEGuilds.getGuildRegistry().getGuild(args[1]);
                             } else {
-                                if (NEGuilds.getUserManager()
+                                if (NEGuilds.getUserRegistry()
                                         .userExists(Bukkit.getOfflinePlayer(args[1]).getUniqueId())) {
-                                    opGuildd = NEGuilds.getUserManager()
-                                            .getTempUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
+                                    opGuildd = NEGuilds.getUserRegistry()
+                                            .getUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
                                 }
                             }
 
@@ -1040,7 +1039,7 @@ public class GuildCommand implements CommandExecutor {
                             GuildModel guildd = opGuildd.get();
 
                             for (UUID uuid : guildd.getMembers()) {
-                                User temp = NEGuilds.getUserManager().getTempUser(uuid);
+                                UserModel temp = NEGuilds.getUserRegistry().getUser(uuid);
                                 temp.setType(null);
                                 temp.removeGuild();
                             }
@@ -1072,10 +1071,10 @@ public class GuildCommand implements CommandExecutor {
                             if (NEGuilds.getGuildRegistry().guildExists(args[1])) {
                                 opGuildd = NEGuilds.getGuildRegistry().getGuild(args[1]);
                             } else {
-                                if (NEGuilds.getUserManager()
+                                if (NEGuilds.getUserRegistry()
                                         .userExists(Bukkit.getOfflinePlayer(args[1]).getUniqueId())) {
-                                    opGuildd = NEGuilds.getUserManager()
-                                            .getTempUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
+                                    opGuildd = NEGuilds.getUserRegistry()
+                                            .getUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
                                 }
                             }
 
@@ -1111,7 +1110,7 @@ public class GuildCommand implements CommandExecutor {
 
                             GuildModel guild = opGuild.get();
 
-                            if (rank != RankType.LEADER && rank != RankType.OFFICER) {
+                            if (rank != GuildRank.LEADER && rank != GuildRank.OFFICER) {
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                         ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
                                 return true;
@@ -1121,10 +1120,10 @@ public class GuildCommand implements CommandExecutor {
                             if (NEGuilds.getGuildRegistry().guildExists(args[1])) {
                                 opGuildd = NEGuilds.getGuildRegistry().getGuild(args[1]);
                             } else {
-                                if (NEGuilds.getUserManager()
+                                if (NEGuilds.getUserRegistry()
                                         .userExists(Bukkit.getOfflinePlayer(args[1]).getUniqueId())) {
-                                    opGuildd = NEGuilds.getUserManager()
-                                            .getTempUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
+                                    opGuildd = NEGuilds.getUserRegistry()
+                                            .getUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
                                 }
                             }
 
@@ -1143,21 +1142,21 @@ public class GuildCommand implements CommandExecutor {
                             }
 
                             if (guildd.getRelations().containsKey(guild.getUUID()) &&
-                                    guildd.getRelations().get(guild.getUUID()) == RelationType.ALLY) {
+                                    guildd.getRelations().get(guild.getUUID()) == GuildRelation.ALLY) {
                                 if (guild.isAlly(guildd)) {
                                     player.sendMessage(Lang.CHAT_TAG
                                             .getServerMessage(
                                                     ChatColor.RED + "You're already allied with that guild!"));
                                     return true;
                                 } else if (guild.getRelations().containsKey(guildd.getUUID()) &&
-                                        guild.getRelations().get(guildd.getUUID()) == RelationType.ALLY) {
+                                        guild.getRelations().get(guildd.getUUID()) == GuildRelation.ALLY) {
                                     player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                             ChatColor.RED +
                                                     "You already have that relation wish set with that guild!"));
                                     return true;
                                 }
 
-                                guild.addRelation(guildd.getUUID(), RelationType.ALLY);
+                                guild.addRelation(guildd.getUUID(), GuildRelation.ALLY);
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                         ChatColor.GRAY + "You have accepted " + guildd.getColor() + guildd.getName() +
                                                 "'s " +
@@ -1185,14 +1184,14 @@ public class GuildCommand implements CommandExecutor {
                                                     ChatColor.RED + "You're already allied with that guild!"));
                                     return true;
                                 } else if (guild.getRelations().containsKey(guildd.getUUID()) &&
-                                        guild.getRelations().get(guildd.getUUID()) == RelationType.ALLY) {
+                                        guild.getRelations().get(guildd.getUUID()) == GuildRelation.ALLY) {
                                     player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                             ChatColor.RED +
                                                     "You already have that relation wish set with that guild!"));
                                     return true;
                                 }
 
-                                guild.addRelation(guildd.getUUID(), RelationType.ALLY);
+                                guild.addRelation(guildd.getUUID(), GuildRelation.ALLY);
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                         ChatColor.GRAY + "You have requested to be allies with  " + guildd.getColor() +
                                                 guildd.getName() + ChatColor.GRAY + "."));
@@ -1222,7 +1221,7 @@ public class GuildCommand implements CommandExecutor {
                                 return true;
                             }
 
-                            if (rank != RankType.LEADER && rank != RankType.OFFICER) {
+                            if (rank != GuildRank.LEADER && rank != GuildRank.OFFICER) {
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                         ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
                                 return true;
@@ -1234,10 +1233,10 @@ public class GuildCommand implements CommandExecutor {
                             if (NEGuilds.getGuildRegistry().guildExists(args[1])) {
                                 opGuildd = NEGuilds.getGuildRegistry().getGuild(args[1]);
                             } else {
-                                if (NEGuilds.getUserManager()
+                                if (NEGuilds.getUserRegistry()
                                         .userExists(Bukkit.getOfflinePlayer(args[1]).getUniqueId())) {
-                                    opGuildd = NEGuilds.getUserManager()
-                                            .getTempUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
+                                    opGuildd = NEGuilds.getUserRegistry()
+                                            .getUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
                                 }
                             }
 
@@ -1256,21 +1255,21 @@ public class GuildCommand implements CommandExecutor {
                             }
 
                             if (guildd.getRelations().containsKey(guild.getUUID()) &&
-                                    guildd.getRelations().get(guild.getUUID()) == RelationType.TRUCE) {
+                                    guildd.getRelations().get(guild.getUUID()) == GuildRelation.TRUCE) {
                                 if (guild.isTruce(guildd)) {
                                     player.sendMessage(Lang.CHAT_TAG
                                             .getServerMessage(
                                                     ChatColor.RED + "You're already truced with that guild!"));
                                     return true;
                                 } else if (guild.getRelations().containsKey(guildd.getUUID()) &&
-                                        guild.getRelations().get(guildd.getUUID()) == RelationType.TRUCE) {
+                                        guild.getRelations().get(guildd.getUUID()) == GuildRelation.TRUCE) {
                                     player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                             ChatColor.RED +
                                                     "You already have that relation wish set with that guild!"));
                                     return true;
                                 }
 
-                                guild.addRelation(guildd.getUUID(), RelationType.TRUCE);
+                                guild.addRelation(guildd.getUUID(), GuildRelation.TRUCE);
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                         ChatColor.GRAY + "You have accepted " + guildd.getColor() + guildd.getName() +
                                                 "'s " +
@@ -1298,14 +1297,14 @@ public class GuildCommand implements CommandExecutor {
                                                     ChatColor.RED + "You're already allied with that guild!"));
                                     return true;
                                 } else if (guild.getRelations().containsKey(guildd.getUUID()) &&
-                                        guild.getRelations().get(guildd.getUUID()) == RelationType.TRUCE) {
+                                        guild.getRelations().get(guildd.getUUID()) == GuildRelation.TRUCE) {
                                     player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                             ChatColor.RED +
                                                     "You already have that relation wish set with that guild!"));
                                     return true;
                                 }
 
-                                guild.addRelation(guildd.getUUID(), RelationType.TRUCE);
+                                guild.addRelation(guildd.getUUID(), GuildRelation.TRUCE);
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                         ChatColor.GRAY + "You have requested to be truced with  " + guildd.getColor() +
                                                 guildd.getName() + ChatColor.GRAY + "."));
@@ -1335,7 +1334,7 @@ public class GuildCommand implements CommandExecutor {
                                 return true;
                             }
 
-                            if (rank != RankType.LEADER && rank != RankType.OFFICER) {
+                            if (rank != GuildRank.LEADER && rank != GuildRank.OFFICER) {
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                         ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
                                 return true;
@@ -1347,10 +1346,10 @@ public class GuildCommand implements CommandExecutor {
                             if (NEGuilds.getGuildRegistry().guildExists(args[1])) {
                                 opGuildd = NEGuilds.getGuildRegistry().getGuild(args[1]);
                             } else {
-                                if (NEGuilds.getUserManager()
+                                if (NEGuilds.getUserRegistry()
                                         .userExists(Bukkit.getOfflinePlayer(args[1]).getUniqueId())) {
-                                    opGuildd = NEGuilds.getUserManager()
-                                            .getTempUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
+                                    opGuildd = NEGuilds.getUserRegistry()
+                                            .getUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
                                 }
                             }
 
@@ -1369,21 +1368,21 @@ public class GuildCommand implements CommandExecutor {
                             }
 
                             if (guildd.getRelations().containsKey(guild.getUUID()) &&
-                                    guildd.getRelations().get(guild.getUUID()) == RelationType.NEUTRAL) {
+                                    guildd.getRelations().get(guild.getUUID()) == GuildRelation.NEUTRAL) {
                                 if (guild.isNeutral(guildd)) {
                                     player.sendMessage(Lang.CHAT_TAG
                                             .getServerMessage(
                                                     ChatColor.RED + "You're already neutral with that guild!"));
                                     return true;
                                 } else if (guild.getRelations().containsKey(guildd.getUUID()) &&
-                                        guild.getRelations().get(guildd.getUUID()) == RelationType.NEUTRAL) {
+                                        guild.getRelations().get(guildd.getUUID()) == GuildRelation.NEUTRAL) {
                                     player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                             ChatColor.RED +
                                                     "You already have that relation wish set with that guild!"));
                                     return true;
                                 }
 
-                                guild.addRelation(guildd.getUUID(), RelationType.NEUTRAL);
+                                guild.addRelation(guildd.getUUID(), GuildRelation.NEUTRAL);
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                         ChatColor.GRAY + "You have accepted " + guildd.getColor() + guildd.getName() +
                                                 "'s " +
@@ -1411,14 +1410,14 @@ public class GuildCommand implements CommandExecutor {
                                                     ChatColor.RED + "You're already neutral with that guild!"));
                                     return true;
                                 } else if (guild.getRelations().containsKey(guildd.getUUID()) &&
-                                        guild.getRelations().get(guildd.getUUID()) == RelationType.NEUTRAL) {
+                                        guild.getRelations().get(guildd.getUUID()) == GuildRelation.NEUTRAL) {
                                     player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                             ChatColor.RED +
                                                     "You already have that relation wish set with that guild!"));
                                     return true;
                                 }
 
-                                guild.addRelation(guildd.getUUID(), RelationType.NEUTRAL);
+                                guild.addRelation(guildd.getUUID(), GuildRelation.NEUTRAL);
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                         ChatColor.GRAY + "You have requested to be neutral with  " + guildd.getColor() +
                                                 guildd.getName() + ChatColor.GRAY + "."));
@@ -1448,7 +1447,7 @@ public class GuildCommand implements CommandExecutor {
                                 return true;
                             }
 
-                            if (rank != RankType.LEADER && rank != RankType.OFFICER) {
+                            if (rank != GuildRank.LEADER && rank != GuildRank.OFFICER) {
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                         ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
                                 return true;
@@ -1460,10 +1459,10 @@ public class GuildCommand implements CommandExecutor {
                             if (NEGuilds.getGuildRegistry().guildExists(args[1])) {
                                 opGuildd = NEGuilds.getGuildRegistry().getGuild(args[1]);
                             } else {
-                                if (NEGuilds.getUserManager()
+                                if (NEGuilds.getUserRegistry()
                                         .userExists(Bukkit.getOfflinePlayer(args[1]).getUniqueId())) {
-                                    opGuildd = NEGuilds.getUserManager()
-                                            .getTempUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
+                                    opGuildd = NEGuilds.getUserRegistry()
+                                            .getUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
                                 }
                             }
 
@@ -1482,16 +1481,16 @@ public class GuildCommand implements CommandExecutor {
                             }
 
                             if (!guildd.getRelations().containsKey(guild.getUUID()) ||
-                                    guildd.getRelations().get(guild.getUUID()) != RelationType.ENEMY) {
+                                    guildd.getRelations().get(guild.getUUID()) != GuildRelation.ENEMY) {
                                 if (guild.getRelations().containsKey(guildd.getUUID()) &&
-                                        guild.getRelations().get(guildd.getUUID()) == RelationType.ENEMY) {
+                                        guild.getRelations().get(guildd.getUUID()) == GuildRelation.ENEMY) {
                                     player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                             ChatColor.RED +
                                                     "You already have that relation wish set with that guild!"));
                                     return true;
                                 }
 
-                                guild.addRelation(guildd.getUUID(), RelationType.ENEMY);
+                                guild.addRelation(guildd.getUUID(), GuildRelation.ENEMY);
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                         ChatColor.GRAY + "You have enemied " + guildd.getColor() + guildd.getName() +
                                                 ChatColor.GRAY + "."));
@@ -1521,7 +1520,7 @@ public class GuildCommand implements CommandExecutor {
                                     return true;
                                 }
 
-                                if (rank != RankType.LEADER && rank != RankType.OFFICER) {
+                                if (rank != GuildRank.LEADER && rank != GuildRank.OFFICER) {
                                     player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                             ChatColor.RED +
                                                     "You must be an officer or leader of the guild to do this!"));
@@ -1596,7 +1595,7 @@ public class GuildCommand implements CommandExecutor {
                                 return true;
                             }
 
-                            if (user.getType() != RankType.LEADER) {
+                            if (user.getType() != GuildRank.LEADER) {
                                 player.sendMessage(Lang.CHAT_TAG
                                         .getServerMessage(
                                                 ChatColor.RED + "You must be the leader of the guild to do this!"));
@@ -1612,7 +1611,7 @@ public class GuildCommand implements CommandExecutor {
                                         .getServerMessage(ChatColor.RED + "You're already the leader of the guild!"));
                                 return true;
                             }
-                            User temp = NEGuilds.getUserManager().getTempUser(leader.getUniqueId());
+                            UserModel temp = NEGuilds.getUserRegistry().getUser(leader.getUniqueId());
                             if (!guild.getMembers().contains(leader.getUniqueId())) {
                                 player.sendMessage(
                                         Lang.CHAT_TAG
@@ -1620,9 +1619,9 @@ public class GuildCommand implements CommandExecutor {
                                 return true;
                             }
 
-                            temp.setType(RankType.LEADER);
+                            temp.setType(GuildRank.LEADER);
                             guild.setLeader(temp.getUUID());
-                            user.setType(RankType.OFFICER);
+                            user.setType(GuildRank.OFFICER);
                             player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                     ChatColor.GRAY + "You have made " + ChatColor.BLUE + leader.getName() +
                                             ChatColor.GRAY +
@@ -1653,7 +1652,7 @@ public class GuildCommand implements CommandExecutor {
                                 return true;
                             }
 
-                            if (rank != RankType.LEADER && rank != RankType.OFFICER) {
+                            if (rank != GuildRank.LEADER && rank != GuildRank.OFFICER) {
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                         ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
                                 return true;
@@ -1663,19 +1662,19 @@ public class GuildCommand implements CommandExecutor {
 
                             String name = args[1];
                             OfflinePlayer off = Bukkit.getOfflinePlayer(name);
-                            User temp = NEGuilds.getUserManager().getTempUser(off.getUniqueId());
+                            UserModel temp = NEGuilds.getUserRegistry().getUser(off.getUniqueId());
                             if (!guild.getMembers().contains(off.getUniqueId())) {
                                 player.sendMessage(
                                         Lang.CHAT_TAG
                                                 .getServerMessage(ChatColor.RED + "That player is not in your guild!"));
                             }
-                            if (rank == RankType.LEADER) {
+                            if (rank == GuildRank.LEADER) {
                                 switch (temp.getType()) {
                                     case RECRUIT:
-                                        temp.setType(RankType.MEMBER);
+                                        temp.setType(GuildRank.MEMBER);
                                         break;
                                     case MEMBER:
-                                        temp.setType(RankType.OFFICER);
+                                        temp.setType(GuildRank.OFFICER);
                                         break;
                                     case OFFICER:
                                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED +
@@ -1687,7 +1686,7 @@ public class GuildCommand implements CommandExecutor {
                                                 ChatColor.RED + "That member is already the leader of the guild!"));
                                         return true;
                                     default:
-                                        temp.setType(RankType.RECRUIT);
+                                        temp.setType(GuildRank.RECRUIT);
                                         break;
                                 }
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(
@@ -1714,7 +1713,7 @@ public class GuildCommand implements CommandExecutor {
                             } else {
                                 switch (temp.getType()) {
                                     case RECRUIT:
-                                        temp.setType(RankType.MEMBER);
+                                        temp.setType(GuildRank.MEMBER);
                                         break;
                                     case MEMBER:
                                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(
@@ -1729,7 +1728,7 @@ public class GuildCommand implements CommandExecutor {
                                                 ChatColor.RED + "That member is already the leader of the guild!"));
                                         return true;
                                     default:
-                                        temp.setType(RankType.RECRUIT);
+                                        temp.setType(GuildRank.RECRUIT);
                                         break;
                                 }
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(
@@ -1765,7 +1764,7 @@ public class GuildCommand implements CommandExecutor {
                                 return true;
                             }
 
-                            if (rank != RankType.LEADER && rank != RankType.OFFICER) {
+                            if (rank != GuildRank.LEADER && rank != GuildRank.OFFICER) {
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                         ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
                                 return true;
@@ -1775,30 +1774,30 @@ public class GuildCommand implements CommandExecutor {
 
                             String name = args[1];
                             OfflinePlayer off = Bukkit.getOfflinePlayer(name);
-                            User temp = NEGuilds.getUserManager().getTempUser(off.getUniqueId());
+                            UserModel temp = NEGuilds.getUserRegistry().getUser(off.getUniqueId());
                             if (!guild.getMembers().contains(off.getUniqueId())) {
                                 player.sendMessage(
                                         Lang.CHAT_TAG
                                                 .getServerMessage(ChatColor.RED + "That player is not in your guild!"));
                             }
-                            if (rank == RankType.LEADER) {
+                            if (rank == GuildRank.LEADER) {
                                 switch (temp.getType()) {
                                     case RECRUIT:
                                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                                 ChatColor.RED + "This player already has the lowest guild rank!"));
                                         return true;
                                     case MEMBER:
-                                        temp.setType(RankType.RECRUIT);
+                                        temp.setType(GuildRank.RECRUIT);
                                         break;
                                     case OFFICER:
-                                        temp.setType(RankType.MEMBER);
+                                        temp.setType(GuildRank.MEMBER);
                                         break;
                                     case LEADER:
                                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                                 ChatColor.RED + "That member is already the leader of the guild!"));
                                         return true;
                                     default:
-                                        temp.setType(RankType.RECRUIT);
+                                        temp.setType(GuildRank.RECRUIT);
                                         break;
                                 }
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(
@@ -1830,7 +1829,7 @@ public class GuildCommand implements CommandExecutor {
                                                 ChatColor.RED + "This player already has the lowest guild rank!"));
                                         return true;
                                     case MEMBER:
-                                        temp.setType(RankType.RECRUIT);
+                                        temp.setType(GuildRank.RECRUIT);
                                         break;
                                     case OFFICER:
                                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(
@@ -1841,7 +1840,7 @@ public class GuildCommand implements CommandExecutor {
                                                 ChatColor.RED + "You can not demote the leader of the guild!"));
                                         return true;
                                     default:
-                                        temp.setType(RankType.RECRUIT);
+                                        temp.setType(GuildRank.RECRUIT);
                                         break;
                                 }
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(
@@ -1884,10 +1883,10 @@ public class GuildCommand implements CommandExecutor {
                             if (NEGuilds.getGuildRegistry().guildExists(args[2])) {
                                 opGuildd = NEGuilds.getGuildRegistry().getGuild(args[2]);
                             } else {
-                                if (NEGuilds.getUserManager()
+                                if (NEGuilds.getUserRegistry()
                                         .userExists(Bukkit.getOfflinePlayer(args[2]).getUniqueId())) {
-                                    opGuildd = NEGuilds.getUserManager()
-                                            .getTempUser(Bukkit.getOfflinePlayer(args[2]).getUniqueId()).getGuild();
+                                    opGuildd = NEGuilds.getUserRegistry()
+                                            .getUser(Bukkit.getOfflinePlayer(args[2]).getUniqueId()).getGuild();
                                 }
                             }
 
@@ -1937,26 +1936,26 @@ public class GuildCommand implements CommandExecutor {
                                 return true;
                             }
 
-                            if (rank != RankType.LEADER && rank != RankType.OFFICER) {
+                            if (rank != GuildRank.LEADER && rank != GuildRank.OFFICER) {
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                         ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
                                 return true;
                             }
                             String name = args[1];
 
-                            RankType type;
-                            type = RankType.valueOf(args[2].toUpperCase());
+                            GuildRank type;
+                            type = GuildRank.valueOf(args[2].toUpperCase());
 
-                            if (type == RankType.LEADER) {
+                            if (type == GuildRank.LEADER) {
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                         ChatColor.RED + "To transfer leadership of the guild do /g leader [player]."));
                                 return true;
                             }
 
-                            if (user.getType() == RankType.LEADER) {
+                            if (user.getType() == GuildRank.LEADER) {
                                 if (opGuild.get().getMembers().contains(Bukkit.getOfflinePlayer(name).getUniqueId())) {
-                                    User temp = NEGuilds.getUserManager()
-                                            .getTempUser(Bukkit.getOfflinePlayer(name).getUniqueId());
+                                    UserModel temp = NEGuilds.getUserRegistry()
+                                            .getUser(Bukkit.getOfflinePlayer(name).getUniqueId());
                                     if (temp == user) {
                                         player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED +
                                                 "You can not change your guild rank unless you transfer leadership of" +
@@ -1965,7 +1964,7 @@ public class GuildCommand implements CommandExecutor {
                                         return true;
                                     }
 
-                                    if (temp.getType() == RankType.LEADER) {
+                                    if (temp.getType() == GuildRank.LEADER) {
                                         player.sendMessage(Lang.CHAT_TAG
                                                 .getServerMessage(
                                                         ChatColor.RED + "That player is already the leader!"));
@@ -2157,7 +2156,7 @@ public class GuildCommand implements CommandExecutor {
         int size = guild.getMembers().size();
         int power = 0;
         for (UUID uuid : guild.getMembers()) {
-            User temp = NEGuilds.getUserManager().getTempUser(uuid);
+            UserModel temp = NEGuilds.getUserRegistry().getUser(uuid);
             power = power + temp.getPower();
         }
         int maxpower = size * 10;
@@ -2213,8 +2212,8 @@ public class GuildCommand implements CommandExecutor {
         String prefix;
         ChatColor color;
         for (UUID uuid : guild.getMembers()) {
-            User temp = NEGuilds.getUserManager().getTempUser(uuid);
-            if (temp.getType() == RankType.LEADER) {
+            UserModel temp = NEGuilds.getUserRegistry().getUser(uuid);
+            if (temp.getType() == GuildRank.LEADER) {
                 if (Bukkit.getOnlinePlayers().contains(Bukkit.getPlayer(uuid))) {
                     color = ChatColor.GREEN;
                 } else {
@@ -2226,8 +2225,8 @@ public class GuildCommand implements CommandExecutor {
             }
         }
         for (UUID uuid : guild.getMembers()) {
-            User temp = NEGuilds.getUserManager().getTempUser(uuid);
-            if (temp.getType() == RankType.OFFICER) {
+            UserModel temp = NEGuilds.getUserRegistry().getUser(uuid);
+            if (temp.getType() == GuildRank.OFFICER) {
                 if (Bukkit.getOnlinePlayers().contains(Bukkit.getPlayer(uuid))) {
                     color = ChatColor.GREEN;
                 } else {
@@ -2239,8 +2238,8 @@ public class GuildCommand implements CommandExecutor {
             }
         }
         for (UUID uuid : guild.getMembers()) {
-            User temp = NEGuilds.getUserManager().getTempUser(uuid);
-            if (temp.getType() == RankType.MEMBER) {
+            UserModel temp = NEGuilds.getUserRegistry().getUser(uuid);
+            if (temp.getType() == GuildRank.MEMBER) {
                 if (Bukkit.getOnlinePlayers().contains(Bukkit.getPlayer(uuid))) {
                     color = ChatColor.GREEN;
                 } else {
@@ -2252,8 +2251,8 @@ public class GuildCommand implements CommandExecutor {
             }
         }
         for (UUID uuid : guild.getMembers()) {
-            User temp = NEGuilds.getUserManager().getTempUser(uuid);
-            if (temp.getType() == RankType.RECRUIT) {
+            UserModel temp = NEGuilds.getUserRegistry().getUser(uuid);
+            if (temp.getType() == GuildRank.RECRUIT) {
                 if (Bukkit.getOnlinePlayers().contains(Bukkit.getPlayer(uuid))) {
                     color = ChatColor.GREEN;
                 } else {
@@ -2289,9 +2288,9 @@ public class GuildCommand implements CommandExecutor {
     }
 
     private void setDescription(Player player, GuildModel guild, String[] args) {
-        User user = NEGuilds.getUserManager().getUser(player.getUniqueId());
+        UserModel user = NEGuilds.getUserRegistry().getUser(player.getUniqueId());
 
-        if (user.getType() != RankType.LEADER && user.getType() != RankType.OFFICER) {
+        if (user.getType() != GuildRank.LEADER && user.getType() != GuildRank.OFFICER) {
             player.sendMessage(Lang.CHAT_TAG
                     .getServerMessage(ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
             return;

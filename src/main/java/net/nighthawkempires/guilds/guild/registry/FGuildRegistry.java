@@ -1,6 +1,7 @@
-package net.nighthawkempires.guilds.guild;
+package net.nighthawkempires.guilds.guild.registry;
 
 import com.demigodsrpg.util.datasection.AbstractFileRegistry;
+import net.nighthawkempires.guilds.guild.GuildModel;
 
 import java.util.Map;
 

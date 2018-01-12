@@ -8,7 +8,7 @@ import net.nighthawkempires.core.language.Lang;
 import net.nighthawkempires.core.utils.ChunkUtil;
 import net.nighthawkempires.guilds.NEGuilds;
 import net.nighthawkempires.guilds.guild.GuildModel;
-import net.nighthawkempires.guilds.user.User;
+import net.nighthawkempires.guilds.user.UserModel;
 import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -28,7 +28,7 @@ public class GuildListener implements Listener {
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
-        User user = NEGuilds.getUserManager().getUser(player.getUniqueId());
+        UserModel user = NEGuilds.getUserRegistry().getUser(player.getUniqueId());
 
         Chunk chunk = player.getLocation().getChunk();
         if (event.getAction() == Action.LEFT_CLICK_BLOCK || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
@@ -82,7 +82,7 @@ public class GuildListener implements Listener {
     @EventHandler
     public void onInteract(PlayerInteractEntityEvent event) {
         Player player = event.getPlayer();
-        User user = NEGuilds.getUserManager().getUser(player.getUniqueId());
+        UserModel user = NEGuilds.getUserRegistry().getUser(player.getUniqueId());
 
         Chunk chunk = player.getLocation().getChunk();
         if (isInteractiveEntity(event.getRightClicked().getType().name())) {
@@ -117,7 +117,7 @@ public class GuildListener implements Listener {
     @EventHandler
     public void onMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
-        User user = NEGuilds.getUserManager().getUser(player.getUniqueId());
+        UserModel user = NEGuilds.getUserRegistry().getUser(player.getUniqueId());
 
         Chunk chunk = player.getLocation().getChunk();
 
@@ -141,7 +141,7 @@ public class GuildListener implements Listener {
     @EventHandler
     public void onBuild(BlockPlaceEvent event) {
         Player player = event.getPlayer();
-        User user = NEGuilds.getUserManager().getUser(player.getUniqueId());
+        UserModel user = NEGuilds.getUserRegistry().getUser(player.getUniqueId());
         Chunk chunk = player.getLocation().getChunk();
 
         if (notAllowedBuild(chunk, player, user)) {
@@ -152,7 +152,7 @@ public class GuildListener implements Listener {
     @EventHandler
     public void onDestroy(BlockBreakEvent event) {
         Player player = event.getPlayer();
-        User user = NEGuilds.getUserManager().getUser(player.getUniqueId());
+        UserModel user = NEGuilds.getUserRegistry().getUser(player.getUniqueId());
         Chunk chunk = player.getLocation().getChunk();
 
         if (notAllowedBuild(chunk, player, user)) {
@@ -163,11 +163,11 @@ public class GuildListener implements Listener {
     @EventHandler
     public void onDeath(UserDeathEvent event) {
         Player player = event.getPlayer();
-        User user = NEGuilds.getUserManager().getUser(player.getUniqueId());
+        UserModel user = NEGuilds.getUserRegistry().getUser(player.getUniqueId());
 
         if (event.getEntityKiller() != null && event.getEntityKiller() instanceof Player) {
             Player killer = (Player) event.getEntityKiller();
-            User kuser = NEGuilds.getUserManager().getUser(killer.getUniqueId());
+            UserModel kuser = NEGuilds.getUserRegistry().getUser(killer.getUniqueId());
 
             if (user.getPower() == 0 || user.getPower() == 1) {
                 user.setPower(0);
@@ -197,9 +197,9 @@ public class GuildListener implements Listener {
     public void onDamage(EntityDamageByEntityEvent event) {
         if (event.getEntity() instanceof Player && event.getDamager() instanceof Player) {
             Player damaged = (Player) event.getEntity();
-            User user = NEGuilds.getUserManager().getUser(damaged.getUniqueId());
+            UserModel user = NEGuilds.getUserRegistry().getUser(damaged.getUniqueId());
             Player damager = (Player) event.getDamager();
-            User duser = NEGuilds.getUserManager().getUser(damager.getUniqueId());
+            UserModel duser = NEGuilds.getUserRegistry().getUser(damager.getUniqueId());
 
             if (notAllowedHurt(damaged, user.getGuild(), damager, duser.getGuild())) {
                 event.setCancelled(true);
@@ -207,11 +207,11 @@ public class GuildListener implements Listener {
             }
         } else if (event.getEntity() instanceof Player && event.getDamager() instanceof Projectile) {
             Player damaged = (Player) event.getEntity();
-            User user = NEGuilds.getUserManager().getUser(damaged.getUniqueId());
+            UserModel user = NEGuilds.getUserRegistry().getUser(damaged.getUniqueId());
             Projectile damager = (Projectile) event.getDamager();
             if (damager.getShooter() instanceof Player) {
                 Player damagerr = (Player) damager.getShooter();
-                User duser = NEGuilds.getUserManager().getUser(damagerr.getUniqueId());
+                UserModel duser = NEGuilds.getUserRegistry().getUser(damagerr.getUniqueId());
 
                 if (notAllowedHurt(damaged, user.getGuild(), damager, duser.getGuild())) {
                     event.setCancelled(true);
@@ -222,7 +222,7 @@ public class GuildListener implements Listener {
 
         if (event.getDamager() instanceof Player) {
             Player player = (Player) event.getDamager();
-            User user = NEGuilds.getUserManager().getUser(player.getUniqueId());
+            UserModel user = NEGuilds.getUserRegistry().getUser(player.getUniqueId());
 
             Chunk chunk = player.getLocation().getChunk();
             if (isInteractiveEntity(event.getEntity().getType().name())) {
@@ -258,7 +258,7 @@ public class GuildListener implements Listener {
     @EventHandler
     public void onManipulate(PlayerArmorStandManipulateEvent event) {
         Player player = event.getPlayer();
-        User user = NEGuilds.getUserManager().getUser(player.getUniqueId());
+        UserModel user = NEGuilds.getUserRegistry().getUser(player.getUniqueId());
 
         Chunk chunk = player.getLocation().getChunk();
         if (isInteractiveEntity(event.getRightClicked().getType().name())) {
@@ -291,7 +291,7 @@ public class GuildListener implements Listener {
     @EventHandler
     public void onCommand(PlayerCommandPreprocessEvent event) {
         Player player = event.getPlayer();
-        User user = NEGuilds.getUserManager().getUser(player.getUniqueId());
+        UserModel user = NEGuilds.getUserRegistry().getUser(player.getUniqueId());
         Chunk chunk = player.getLocation().getChunk();
 
         if (user.getGuild().isPresent()) {
@@ -310,7 +310,7 @@ public class GuildListener implements Listener {
         }
     }
 
-    private boolean notAllowedBuild(Chunk chunk, Player player, User user) {
+    private boolean notAllowedBuild(Chunk chunk, Player player, UserModel user) {
         Optional<GuildModel> opGuild = NEGuilds.getGuildRegistry().getGuild(chunk);
         if (opGuild.isPresent()) {
             if (!NEGuilds.getGuildTempData().adminBypass.contains(player.getUniqueId())) {

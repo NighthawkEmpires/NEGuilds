@@ -6,8 +6,8 @@ import net.nighthawkempires.core.language.Lang;
 import net.nighthawkempires.core.utils.*;
 import net.nighthawkempires.guilds.NEGuilds;
 import net.nighthawkempires.guilds.guild.GuildModel;
-import net.nighthawkempires.guilds.guild.rank.RankType;
-import net.nighthawkempires.guilds.user.User;
+import net.nighthawkempires.guilds.guild.GuildRank;
+import net.nighthawkempires.guilds.user.UserModel;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -23,13 +23,13 @@ public class InventoryListener implements Listener {
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         Player player = (Player) event.getWhoClicked();
-        User user = NEGuilds.getUserManager().getUser(player.getUniqueId());
+        UserModel user = NEGuilds.getUserRegistry().getUser(player.getUniqueId());
 
         try {
             if (ChatColor.stripColor(event.getClickedInventory().getName()).equals("Guild Color")) {
                 Optional<GuildModel> opGuild = user.getGuild();
-                if (opGuild.isPresent() && (user.getType() == RankType.LEADER ||
-                        user.getType() == RankType.OFFICER)) {
+                if (opGuild.isPresent() && (user.getType() == GuildRank.LEADER ||
+                        user.getType() == GuildRank.OFFICER)) {
                     if (event.isShiftClick()) {
                         event.setCancelled(true);
                         return;

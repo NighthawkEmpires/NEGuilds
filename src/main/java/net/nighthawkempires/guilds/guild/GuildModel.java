@@ -5,7 +5,6 @@ import com.demigodsrpg.util.datasection.Model;
 import com.google.common.collect.*;
 import net.nighthawkempires.core.utils.ChunkUtil;
 import net.nighthawkempires.guilds.NEGuilds;
-import net.nighthawkempires.guilds.guild.relation.RelationType;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 
@@ -25,7 +24,7 @@ public class GuildModel implements Model {
     private List<UUID> members;
     private List<UUID> invites;
     private List<String> territory;
-    private ConcurrentMap<UUID, RelationType> relations;
+    private ConcurrentMap<UUID, GuildRelation> relations;
 
     public GuildModel(UUID uuid, String name, UUID leader) {
         this.uuid = uuid;
@@ -146,11 +145,11 @@ public class GuildModel implements Model {
         NEGuilds.getGuildRegistry().register(this);
     }
 
-    public ImmutableMap<UUID, RelationType> getRelations() {
+    public ImmutableMap<UUID, GuildRelation> getRelations() {
         return ImmutableMap.copyOf(relations);
     }
 
-    public void addRelation(UUID uuid, RelationType type) {
+    public void addRelation(UUID uuid, GuildRelation type) {
         relations.put(uuid, type);
         NEGuilds.getGuildRegistry().register(this);
     }
@@ -160,9 +159,9 @@ public class GuildModel implements Model {
         NEGuilds.getGuildRegistry().register(this);
     }
 
-    public void setRelations(Map<UUID, RelationType> relations) {
+    public void setRelations(Map<UUID, GuildRelation> relations) {
         this.relations = new ConcurrentHashMap<>();
-        for (Map.Entry<UUID, RelationType> entry : relations.entrySet()) {
+        for (Map.Entry<UUID, GuildRelation> entry : relations.entrySet()) {
             this.relations.put(entry.getKey(), entry.getValue());
         }
         NEGuilds.getGuildRegistry().register(this);
@@ -170,20 +169,20 @@ public class GuildModel implements Model {
 
     public boolean isAlly(GuildModel guild) {
         return getRelations().containsKey(guild.getUUID()) && getRelations().get(guild.getUUID()) ==
-                RelationType.ALLY && guild.getRelations().containsKey(uuid) && guild.getRelations().get(uuid) ==
-                RelationType.ALLY;
+                GuildRelation.ALLY && guild.getRelations().containsKey(uuid) && guild.getRelations().get(uuid) ==
+                GuildRelation.ALLY;
     }
 
     public boolean isTruce(GuildModel guild) {
         return getRelations().containsKey(guild.getUUID()) && getRelations().get(guild.getUUID()) ==
-                RelationType.TRUCE && guild.getRelations().containsKey(uuid) && guild.getRelations().get(uuid) ==
-                RelationType.TRUCE;
+                GuildRelation.TRUCE && guild.getRelations().containsKey(uuid) && guild.getRelations().get(uuid) ==
+                GuildRelation.TRUCE;
     }
 
     public boolean isNeutral(GuildModel guild) {
         if (getRelations().containsKey(guild.getUUID()) && getRelations().get(guild.getUUID()) ==
-                RelationType.NEUTRAL && guild.getRelations().containsKey(uuid) && guild.getRelations().get(uuid) ==
-                RelationType.NEUTRAL) {
+                GuildRelation.NEUTRAL && guild.getRelations().containsKey(uuid) && guild.getRelations().get(uuid) ==
+                GuildRelation.NEUTRAL) {
             return true;
         } else if (!getRelations().containsKey(guild.getUUID())) {
             return true;
@@ -192,8 +191,8 @@ public class GuildModel implements Model {
 
     public boolean isEnemy(GuildModel guild) {
         return getRelations().containsKey(guild.getUUID()) && getRelations().get(guild.getUUID()) ==
-                RelationType.ENEMY || guild.getRelations().containsKey(uuid) && guild.getRelations().get(uuid) ==
-                RelationType.ENEMY;
+                GuildRelation.ENEMY || guild.getRelations().containsKey(uuid) && guild.getRelations().get(uuid) ==
+                GuildRelation.ENEMY;
     }
 
     public UUID getUUID() {
@@ -227,7 +226,7 @@ public class GuildModel implements Model {
         Map<String, String> relateMap = (Map) data.getRawNullable("relations");
         if (relateMap != null) {
             for (Map.Entry<String, String> entry : relateMap.entrySet()) {
-                RelationType type = RelationType.valueOf(entry.getValue().toUpperCase());
+                GuildRelation type = GuildRelation.valueOf(entry.getValue().toUpperCase());
                 relations.put(UUID.fromString(entry.getKey()), type);
             }
         }

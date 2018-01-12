@@ -1,14 +1,15 @@
-package net.nighthawkempires.guilds.guild;
+package net.nighthawkempires.guilds.guild.registry;
 
 import com.demigodsrpg.util.datasection.AbstractMongoRegistry;
 import com.mongodb.client.MongoDatabase;
+import net.nighthawkempires.guilds.guild.GuildModel;
 
 import java.util.Map;
 
 public class MGuildRegistry extends AbstractMongoRegistry<GuildModel> implements GuildRegistry {
 
-    public MGuildRegistry(MongoDatabase database, int expireInMins) {
-        super(database.getCollection(NAME), expireInMins);
+    public MGuildRegistry(MongoDatabase database) {
+        super(database.getCollection(NAME), 0);
     }
 
     @Override

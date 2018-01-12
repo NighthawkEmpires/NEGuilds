@@ -6,14 +6,15 @@ import net.nighthawkempires.core.NECore;
 import net.nighthawkempires.core.file.FileDirectory;
 import net.nighthawkempires.core.server.Server;
 import net.nighthawkempires.guilds.command.GuildCommand;
-import net.nighthawkempires.guilds.guild.*;
+import net.nighthawkempires.guilds.guild.GuildTag;
+import net.nighthawkempires.guilds.guild.GuildTempData;
+import net.nighthawkempires.guilds.guild.registry.*;
 import net.nighthawkempires.guilds.listener.*;
 import net.nighthawkempires.guilds.scoreboard.GuildScoreboards;
 import net.nighthawkempires.guilds.task.ChunkBoundaryTask;
-import net.nighthawkempires.guilds.user.User;
-import net.nighthawkempires.guilds.user.UserManager;
+import net.nighthawkempires.guilds.task.PlayerOnlineCheckTask;
+import net.nighthawkempires.guilds.user.registry.*;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -24,18 +25,16 @@ public class NEGuilds extends JavaPlugin {
     private static Plugin plugin;
 
     private static MongoDatabase mongoDatabase;
+    private static UserRegistry userRegistry;
     private static GuildRegistry guildRegistry;
 
     private static PluginManager pluginManager;
-    private static UserManager userManager;
 
     private static InventoryListener inventoryListener;
 
     private static GuildTempData guildData;
 
     private static ChunkBoundaryTask boundaryTask;
-
-    private boolean enabled = false;
 
     public void onEnable() {
         if (NECore.getSettings().server != Server.SUR) {
@@ -56,7 +55,8 @@ public class NEGuilds extends JavaPlugin {
                 mongoDatabase =
                         new MongoClient(address, credential, new MongoClientOptions.Builder().build())
                                 .getDatabase("ne_guilds");
-                guildRegistry = new MGuildRegistry(mongoDatabase, 0);
+                userRegistry = new MUserRegistry(mongoDatabase);
+                guildRegistry = new MGuildRegistry(mongoDatabase);
                 NECore.getLoggers().info("MongoDB enabled.");
             } catch (Exception oops) {
                 oops.printStackTrace();
@@ -67,12 +67,12 @@ public class NEGuilds extends JavaPlugin {
         }
 
         if (!NECore.getSettings().mongoEnabledGuilds) {
+            userRegistry = new FUserRegistry(FileDirectory.GUILD_DIRECTORY.getDirectory().getPath());
             guildRegistry = new FGuildRegistry(FileDirectory.GUILD_DIRECTORY.getDirectory().getPath());
             NECore.getLoggers().info("Json file saving enabled.");
         }
 
         pluginManager = Bukkit.getPluginManager();
-        userManager = new UserManager();
 
         inventoryListener = new InventoryListener();
 
@@ -83,17 +83,7 @@ public class NEGuilds extends JavaPlugin {
         NECore.getChatFormat().add(new GuildTag());
         NECore.getScoreboardManager().addScoreboard(new GuildScoreboards());
 
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> {
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                User user = getUserManager().getUser(player.getUniqueId());
-
-                if (user.getPower() >= 10) {
-                    user.setPower(10);
-                } else {
-                    user.setPower(user.getPower() + 1);
-                }
-            }
-        }, 6000, 6000);
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new PlayerOnlineCheckTask(), 240, 240);
 
         BukkitRunnable runnable = boundaryTask;
         runnable.runTaskTimer(this, 0, 10);
@@ -101,23 +91,13 @@ public class NEGuilds extends JavaPlugin {
         registerCommands();
         registerListeners();
 
+        userRegistry.loadAllFromDb();
         guildRegistry.loadAllFromDb();
-
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            getUserManager().loadUser(new User(player.getUniqueId()));
-        }
-
-        enabled = true;
     }
 
 
     public void onDisable() {
-        if (enabled) {
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                NEGuilds.getUserManager().saveUser(NEGuilds.getUserManager().getUser(player.getUniqueId()));
-            }
-        }
-        enabled = false;
+        // NOTHING
     }
 
     private void registerCommands() {
@@ -134,16 +114,16 @@ public class NEGuilds extends JavaPlugin {
         return plugin;
     }
 
+    public static UserRegistry getUserRegistry() {
+        return userRegistry;
+    }
+
     public static GuildRegistry getGuildRegistry() {
         return guildRegistry;
     }
 
     public static PluginManager getPluginManager() {
         return pluginManager;
-    }
-
-    public static UserManager getUserManager() {
-        return userManager;
     }
 
     public static InventoryListener getInventoryListener() {

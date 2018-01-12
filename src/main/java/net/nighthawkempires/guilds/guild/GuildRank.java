@@ -1,6 +1,6 @@
-package net.nighthawkempires.guilds.guild.rank;
+package net.nighthawkempires.guilds.guild;
 
-public enum RankType {
+public enum GuildRank {
 
     LEADER,
     OFFICER,

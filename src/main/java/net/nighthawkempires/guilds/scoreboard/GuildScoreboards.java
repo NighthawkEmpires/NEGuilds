@@ -4,7 +4,7 @@ import net.nighthawkempires.core.NECore;
 import net.nighthawkempires.core.language.Lang;
 import net.nighthawkempires.core.scoreboard.Scoreboards;
 import net.nighthawkempires.guilds.NEGuilds;
-import net.nighthawkempires.guilds.user.User;
+import net.nighthawkempires.guilds.user.UserModel;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -32,7 +32,7 @@ public class GuildScoreboards extends Scoreboards {
         final Objective[] objective = {scoreboard[0].registerNewObjective("test", "dummy")};
         objective[0].setDisplaySlot(DisplaySlot.SIDEBAR);
         objective[0].setDisplayName(Lang.SCOREBOARD.getServerBoard());
-        User user = NEGuilds.getUserManager().getUser(player.getUniqueId());
+        UserModel user = NEGuilds.getUserRegistry().getUser(player.getUniqueId());
         Team guild = scoreboard[0].registerNewTeam("guild");
         guild.addEntry(ChatColor.GRAY + " ➛   " + ChatColor.WHITE + "" + ChatColor.BOLD);
         guild.setPrefix("");
