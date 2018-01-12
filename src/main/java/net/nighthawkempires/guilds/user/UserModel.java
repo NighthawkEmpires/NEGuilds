@@ -14,7 +14,7 @@ public class UserModel implements Model {
     private UUID uuid;
     private String name;
     private UUID guild;
-    private GuildRank type;
+    private GuildRank rank;
     private int power;
 
     public UserModel(UUID uuid) {
@@ -30,7 +30,7 @@ public class UserModel implements Model {
             guild = UUID.fromString(data.getString("guild"));
         }
         if (data.isString("rank")) {
-            type = GuildRank.valueOf(data.getString("rank"));
+            rank = GuildRank.valueOf(data.getString("rank"));
         }
         power = data.getInt("power");
     }
@@ -65,12 +65,12 @@ public class UserModel implements Model {
         guild = null;
     }
 
-    public GuildRank getType() {
-        return type;
+    public GuildRank getRank() {
+        return rank;
     }
 
-    public void setType(GuildRank type) {
-        this.type = type;
+    public void setRank(GuildRank rank) {
+        this.rank = rank;
     }
 
     public int getPower() {
@@ -94,8 +94,12 @@ public class UserModel implements Model {
     public Map<String, Object> serialize() {
         Map<String, Object> map = new HashMap<>();
         map.put("name", name);
-        map.put("guild", guild.toString());
-        map.put("rank", type.getName());
+        if (guild != null) {
+            map.put("guild", guild.toString());
+        }
+        if (rank != null) {
+            map.put("rank", rank.getName());
+        }
         map.put("power", power);
         return map;
     }

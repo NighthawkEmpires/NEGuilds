@@ -28,8 +28,8 @@ public class InventoryListener implements Listener {
         try {
             if (ChatColor.stripColor(event.getClickedInventory().getName()).equals("Guild Color")) {
                 Optional<GuildModel> opGuild = user.getGuild();
-                if (opGuild.isPresent() && (user.getType() == GuildRank.LEADER ||
-                        user.getType() == GuildRank.OFFICER)) {
+                if (opGuild.isPresent() && (user.getRank() == GuildRank.LEADER ||
+                        user.getRank() == GuildRank.OFFICER)) {
                     if (event.isShiftClick()) {
                         event.setCancelled(true);
                         return;
