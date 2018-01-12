@@ -3,6 +3,7 @@ package net.nighthawkempires.guilds;
 import com.mongodb.*;
 import com.mongodb.client.MongoDatabase;
 import net.nighthawkempires.core.NECore;
+import net.nighthawkempires.core.file.FileDirectory;
 import net.nighthawkempires.core.server.Server;
 import net.nighthawkempires.guilds.command.GuildCommand;
 import net.nighthawkempires.guilds.guild.*;
@@ -17,20 +18,16 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.inventivetalent.mapmanager.MapManagerPlugin;
-import org.inventivetalent.mapmanager.manager.MapManager;
 
 public class NEGuilds extends JavaPlugin {
 
     private static Plugin plugin;
-    private static NEGuilds instance;
 
     private static MongoDatabase mongoDatabase;
     private static GuildRegistry guildRegistry;
 
     private static PluginManager pluginManager;
     private static UserManager userManager;
-    private static MapManager mapManager;
 
     private static InventoryListener inventoryListener;
 
@@ -45,17 +42,22 @@ public class NEGuilds extends JavaPlugin {
             return;
         }
         plugin = this;
-        instance = this;
 
-        ServerAddress address = new ServerAddress("localhost", 27017);
-        MongoCredential credential = MongoCredential.createCredential("username", "database", "password".toCharArray());
-        mongoDatabase =
-                new MongoClient(address, credential, new MongoClientOptions.Builder().build()).getDatabase("ne_guilds");
-        guildRegistry = new GuildRegistry(mongoDatabase, 0);
+        if (NECore.getSettings().mongoEnabled) {
+            String hostname = NECore.getSettings().mongoHostname;
+            ServerAddress address = new ServerAddress(hostname, 27017);
+            MongoCredential credential =
+                    MongoCredential.createCredential("guilds", "ne_guilds", "xenMoose1".toCharArray());
+            mongoDatabase =
+                    new MongoClient(address, credential, new MongoClientOptions.Builder().build())
+                            .getDatabase("ne_guilds");
+            guildRegistry = new MGuildRegistry(mongoDatabase, 0);
+        } else {
+            guildRegistry = new FGuildRegistry(FileDirectory.GUILD_DIRECTORY.getDirectory().getPath());
+        }
 
         pluginManager = Bukkit.getPluginManager();
         userManager = new UserManager();
-        mapManager = ((MapManagerPlugin) Bukkit.getPluginManager().getPlugin("MapManager")).getMapManager();
 
         inventoryListener = new InventoryListener();
 
@@ -70,7 +72,7 @@ public class NEGuilds extends JavaPlugin {
             for (Player player : Bukkit.getOnlinePlayers()) {
                 User user = getUserManager().getUser(player.getUniqueId());
 
-                if (user.getPower() == 10) {
+                if (user.getPower() >= 10) {
                     user.setPower(10);
                 } else {
                     user.setPower(user.getPower() + 1);
@@ -118,10 +120,6 @@ public class NEGuilds extends JavaPlugin {
 
     public static PluginManager getPluginManager() {
         return pluginManager;
-    }
-
-    public static MapManager getMapManager() {
-        return mapManager;
     }
 
     public static UserManager getUserManager() {

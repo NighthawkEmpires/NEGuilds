@@ -2,7 +2,7 @@ package net.nighthawkempires.guilds.user;
 
 import com.google.common.collect.Maps;
 import net.nighthawkempires.core.NECore;
-import net.nighthawkempires.core.file.FileType;
+import net.nighthawkempires.core.file.FileFolder;
 import net.nighthawkempires.guilds.NEGuilds;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -67,7 +67,7 @@ public class UserManager {
     }
 
     public boolean userExists(UUID uuid) {
-        if (NECore.getSettings().useSQL) {
+        if (NECore.getSettings().mysqlEnabled) {
             try {
                 String table = "guilds_data";
                 PreparedStatement statement =
@@ -79,7 +79,7 @@ public class UserManager {
                 e.printStackTrace();
             }
         } else {
-            return getFileManager().fileExists(uuid.toString(), FileType.PLAYER_FILE);
+            return getFileManager().fileExists(uuid.toString(), FileFolder.PLAYER_PATH);
         }
         return false;
     }
@@ -90,7 +90,7 @@ public class UserManager {
 
     public FileConfiguration getPlayerFile(UUID uuid) {
         if (!getFileManager().isFileLoaded(uuid.toString())) {
-            getFileManager().loadFile(uuid.toString(), FileType.PLAYER_FILE);
+            getFileManager().loadFile(uuid.toString(), FileFolder.PLAYER_PATH);
         }
         return getFileManager().getFile(uuid.toString());
     }

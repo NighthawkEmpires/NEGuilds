@@ -1,12 +1,13 @@
 package net.nighthawkempires.guilds.command;
 
 import com.google.common.collect.Lists;
+import net.nighthawkempires.core.file.FileDirectory;
 import net.nighthawkempires.core.language.Lang;
 import net.nighthawkempires.core.utils.ChunkUtil;
 import net.nighthawkempires.core.utils.MathUtil;
 import net.nighthawkempires.essentials.NEEssentials;
 import net.nighthawkempires.guilds.NEGuilds;
-import net.nighthawkempires.guilds.guild.GuildModel;
+import net.nighthawkempires.guilds.guild.*;
 import net.nighthawkempires.guilds.guild.rank.RankType;
 import net.nighthawkempires.guilds.guild.relation.RelationType;
 import net.nighthawkempires.guilds.user.User;
@@ -1808,10 +1809,38 @@ public class GuildCommand implements CommandExecutor {
             }
         } else if (sender instanceof ConsoleCommandSender) {
             ConsoleCommandSender console = (ConsoleCommandSender) sender;
-            if (args.length > 1 && args[0].equalsIgnoreCase("purge")) { // TODO VERY UNSAFE
+            if (args.length > 0 && args[0].equalsIgnoreCase("purge")) { // TODO VERY UNSAFE
                 console.sendMessage(
                         Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "Let the purge begin!"));
                 NEGuilds.getGuildRegistry().purge();
+                return true;
+            } else if (args.length > 1 && args[0].equalsIgnoreCase("transferto")) {
+                if (NEGuilds.getGuildRegistry() instanceof MGuildRegistry) {
+                    if (args[1].equalsIgnoreCase("file")) {
+                        GuildRegistry guildMongo = NEGuilds.getGuildRegistry();
+                        FGuildRegistry guildFile =
+                                new FGuildRegistry(FileDirectory.GUILD_DIRECTORY.getDirectory().getPath());
+                        Map<String, GuildModel> data = guildMongo.loadAllFromDb();
+                        guildFile.purge();
+                        for (GuildModel guild : data.values()) {
+                            guildFile.register(guild);
+                        }
+                        Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "Guild data transferred to file.");
+                    } else if (args[1].equalsIgnoreCase("mongo")) {
+                        GuildRegistry guildMongo = NEGuilds.getGuildRegistry();
+                        FGuildRegistry guildFile =
+                                new FGuildRegistry(FileDirectory.GUILD_DIRECTORY.getDirectory().getPath());
+                        Map<String, GuildModel> data = guildFile.loadAllFromDb();
+                        guildMongo.purge();
+                        for (GuildModel guild : data.values()) {
+                            guildMongo.register(guild);
+                        }
+                        Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "Guild data transferred to MongoDB.");
+                    }
+                } else {
+                    Lang.CHAT_TAG
+                            .getServerMessage(ChatColor.RED + "You must be connected to MongoDB to transfer data.");
+                }
                 return true;
             }
             console.sendMessage(
