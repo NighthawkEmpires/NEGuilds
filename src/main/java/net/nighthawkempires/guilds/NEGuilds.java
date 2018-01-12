@@ -43,19 +43,28 @@ public class NEGuilds extends JavaPlugin {
         }
         plugin = this;
 
+        boolean success = true;
         if (NECore.getSettings().mongoEnabledGuilds) {
-            String hostname = NECore.getSettings().mongoHostnameGuilds;
-            String username = NECore.getSettings().mongoUsernameGuilds;
-            String password = NECore.getSettings().mongoPasswordGuilds;
-            ServerAddress address = new ServerAddress(hostname, 27017);
-            MongoCredential credential =
-                    MongoCredential.createCredential(username, "ne_guilds", password.toCharArray());
-            mongoDatabase =
-                    new MongoClient(address, credential, new MongoClientOptions.Builder().build())
-                            .getDatabase("ne_guilds");
-            guildRegistry = new MGuildRegistry(mongoDatabase, 0);
-            NECore.getLoggers().info("MongoDB enabled.");
-        } else {
+            try {
+                String hostname = NECore.getSettings().mongoHostnameGuilds;
+                String username = NECore.getSettings().mongoUsernameGuilds;
+                String password = NECore.getSettings().mongoPasswordGuilds;
+                ServerAddress address = new ServerAddress(hostname, 27017);
+                MongoCredential credential =
+                        MongoCredential.createCredential(username, "ne_guilds", password.toCharArray());
+                mongoDatabase =
+                        new MongoClient(address, credential, new MongoClientOptions.Builder().build())
+                                .getDatabase("ne_guilds");
+                guildRegistry = new MGuildRegistry(mongoDatabase, 0);
+                NECore.getLoggers().info("MongoDB enabled.");
+            } catch (Exception oops) {
+                success = false;
+                oops.printStackTrace();
+                NECore.getLoggers().info("MongoDB connection failed.");
+            }
+        }
+
+        if (!success || !NECore.getSettings().mongoEnabledGuilds) {
             guildRegistry = new FGuildRegistry(FileDirectory.GUILD_DIRECTORY.getDirectory().getPath());
             NECore.getLoggers().info("Json file saving enabled.");
         }
