@@ -22,7 +22,7 @@ import java.util.*;
 
 public class GuildCommand implements CommandExecutor {
 
-    private String[] adminHelp1, adminHelp2, adminHelp3, help1, help2, help3;
+    private final String[] adminHelp1, adminHelp2, adminHelp3, help1, help2, help3;
 
     public GuildCommand() {
         adminHelp1 = new String[]{
@@ -144,1219 +144,328 @@ public class GuildCommand implements CommandExecutor {
             }
 
             RankType rank = user.getType();
-            if (args.length == 0) {
-                if (sender.hasPermission("ne.admin")) {
-                    player.sendMessage(adminHelp1);
-                    return true;
-                }
-                player.sendMessage(help1);
-                return true;
-            } else if (args.length == 1) {
-                if (args[0].toLowerCase().equals("claim")) {
-                    if (!inGuild || rank == null) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're not currently in any guild!"));
-                        return true;
-                    }
-
-                    GuildModel guild = opGuild.get();
-
-                    if (rank != RankType.OFFICER && rank != RankType.LEADER) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
-                        return true;
-                    }
-
-                    Chunk chunk = player.getLocation().getChunk();
-                    if (guild.getTerritory().contains(ChunkUtil.getChunkString(chunk))) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "Your guild already owns this land!"));
-                        return true;
-                    }
-
-                    if (MathUtil.greaterThanEqualTo(guild.getTerritory().size(),
-                            guild.getMembers().size() * 10)) {
-                        player.sendMessage(Lang.CHAT_TAG
-                                .getServerMessage(ChatColor.RED + "You do not have enough Land Power to claim this!"));
-                        return true;
-                    }
-
-                    Optional<GuildModel> opClaimed = NEGuilds.getGuildRegistry().getGuild(chunk);
-                    if (opClaimed.isPresent()) {
-                        GuildModel guilds = opClaimed.get();
-                        int power = 0;
-                        for (UUID uuid : guild.getMembers()) {
-                            User temp = NEGuilds.getUserManager().getTempUser(uuid);
-                            power = power + temp.getPower();
-                        }
-                        power = power / guild.getMembers().size();
-
-                        int powerRival = 0;
-                        for (UUID uuid : guild.getMembers()) {
-                            User temp = NEGuilds.getUserManager().getTempUser(uuid);
-                            powerRival = powerRival + temp.getPower();
-                        }
-                        powerRival = powerRival / guild.getMembers().size();
-
-                        if (MathUtil.greaterThan(power, (int) Math.ceil((double) powerRival * 2.5))) {
-                            guilds.removeTerritory(chunk);
-                            for (Player players : Bukkit.getOnlinePlayers()) {
-                                if (guilds.getMembers().contains(players.getUniqueId())) {
-                                    players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                            guild.getColor() + guild.getName() + ChatColor.GRAY +
-                                                    " claimed over your territory at " + ChatColor.DARK_GRAY + "["
-                                                    + ChatColor.GOLD + chunk.getX() + ChatColor.DARK_GRAY + ", " +
-                                                    ChatColor.GOLD + chunk.getZ() + ChatColor.DARK_GRAY + "]" +
-                                                    ChatColor.GRAY + "."));
-                                }
-                            }
-                            if (guilds.getHome().getChunk() == chunk) {
-                                for (Player players : Bukkit.getOnlinePlayers()) {
-                                    if (guilds.getMembers().contains(players.getUniqueId())) {
-                                        players.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY +
-                                                "The home of your guild has been unset due to the territory it " +
-                                                "was overclaimed by " +
-                                                guild.getColor() + guild.getName() + ChatColor.GRAY + "."));
-                                    }
-                                }
-                            }
-                        } else {
-                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                    ChatColor.RED + "This land is already owned by " + guilds.getColor() +
-                                            guilds.getName() + ChatColor.RED + "."));
-                            return true;
-                        }
-                    }
-
-                    guild.addTerritory(chunk);
-                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                            ChatColor.GRAY + "You have claimed land at " + ChatColor.DARK_GRAY + "[" + ChatColor.GOLD +
-                                    chunk.getX() + ChatColor.DARK_GRAY
-                                    + ", " + ChatColor.GOLD + chunk.getZ() + ChatColor.DARK_GRAY + "]" +
-                                    ChatColor.GRAY + " for your guild."));
-                    for (Player players : Bukkit.getOnlinePlayers()) {
-                        if (guild.getMembers().contains(players.getUniqueId())) {
-                            if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
-                                players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                        ChatColor.BLUE + player.getName() + ChatColor.GRAY + " claimed land at " +
-                                                ChatColor.DARK_GRAY + "[" + ChatColor.GOLD + chunk.getX() +
-                                                ChatColor.DARK_GRAY
-                                                + ", " + ChatColor.GOLD + chunk.getZ() + ChatColor.DARK_GRAY + "]" +
-                                                ChatColor.GRAY + " for your guild."));
-                            }
-                        }
-                    }
-
-                } else if (args[0].toLowerCase().equals("help")) {
+            switch (args.length) {
+                case 0:
                     if (sender.hasPermission("ne.admin")) {
                         player.sendMessage(adminHelp1);
                         return true;
                     }
                     player.sendMessage(help1);
                     return true;
-                } else if (args[0].toLowerCase().equals("show") || args[0].toLowerCase().equals("info")) {
-                    if (!opGuild.isPresent()) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're not currently in a guild!"));
-                        return true;
-                    }
-
-                    GuildModel guild = opGuild.get();
-
-                    sendGuildInfo(player, guild);
-                } else if (args[0].toLowerCase().equals("home")) {
-                    if (!inGuild) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're not currently in any guild!"));
-                        return true;
-                    }
-
-                    if (!opGuild.isPresent()) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're not currently in any guild!"));
-                        return true;
-                    }
-
-                    if (opGuild.get().getHome() == null) {
-                        player.sendMessage(Lang.CHAT_TAG
-                                .getServerMessage(ChatColor.RED + "Your guild does not currently have a home set!"));
-                        return true;
-                    }
-
-                    if (!player.hasPermission("ne.no.cmdwarmup")) {
-                        NEEssentials.getData().dontMove.add(player.getUniqueId());
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerChatTag() + ChatColor.GRAY + "Executing " + ChatColor.AQUA +
-                                        "/g" + ChatColor.DARK_AQUA + " home" + ChatColor.GRAY + " in "
-                                        + ChatColor.GOLD + "4 seconds.");
-                        Bukkit.getScheduler().scheduleSyncDelayedTask(NEEssentials.getPlugin(), () -> {
-                            if (NEEssentials.getData().dontMove.contains(player.getUniqueId())) {
-                                NEEssentials.getData().lastLocation.put(player.getUniqueId(), player.getLocation());
-                                player.teleport(user.getGuild().get().getHome());
-                                player.sendMessage(Lang.CHAT_TAG.getServerChatTag() + ChatColor.GRAY +
-                                        "You have teleported to your guild's home!");
-                                NEEssentials.getData().dontMove.remove(player.getUniqueId());
+                case 1:
+                    switch (args[0].toLowerCase()) {
+                        case "claim": {
+                            if (!inGuild || rank == null) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(
+                                                        ChatColor.RED + "You're not currently in any guild!"));
+                                return true;
                             }
-                        }, 80L);
-                        return true;
-                    }
-                    NEEssentials.getData().lastLocation.put(player.getUniqueId(), player.getLocation());
-                    player.teleport(user.getGuild().get().getHome());
-                    player.sendMessage(Lang.CHAT_TAG.getServerChatTag() + ChatColor.GRAY +
-                            "You have teleported to your guild's home!");
-                } else if (args[0].toLowerCase().equals("sethome")) {
-                    if (!inGuild || !opGuild.isPresent()) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're not currently in any guild!"));
-                        return true;
-                    }
 
-                    GuildModel guild = opGuild.get();
+                            GuildModel guild = opGuild.get();
 
-                    if (rank != RankType.OFFICER && rank != RankType.LEADER) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
-                        return true;
-                    }
-
-                    Chunk chunk = player.getLocation().getChunk();
-                    if (!guild.getTerritory().contains(ChunkUtil.getChunkString(chunk))) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.RED + "You must be in your own territory to set the home of the guild!"));
-                        return true;
-                    }
-
-                    guild.setHome(player.getLocation());
-                    int x = player.getLocation().getBlockX(), y = player.getLocation().getBlockY(), z =
-                            player.getLocation().getBlockZ();
-                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                            ChatColor.GRAY + "You have set the home of the guild at " + ChatColor.DARK_GRAY + "[" +
-                                    ChatColor.GOLD + x + ChatColor.DARK_GRAY + ", "
-                                    + ChatColor.GOLD + y + ChatColor.DARK_GRAY + ", " + ChatColor.GOLD + z +
-                                    ChatColor.DARK_GRAY + "]" + ChatColor.GRAY + "."));
-                    for (Player players : Bukkit.getOnlinePlayers()) {
-                        if (guild.getMembers().contains(players.getUniqueId())) {
-                            if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
+                            if (rank != RankType.OFFICER && rank != RankType.LEADER) {
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                        ChatColor.BLUE + player.getName() + ChatColor.GRAY +
-                                                " set the home of the guild at " + ChatColor.DARK_GRAY + "[" +
-                                                ChatColor.GOLD
-                                                + x + ChatColor.DARK_GRAY + ", " + ChatColor.GOLD + y +
-                                                ChatColor.DARK_GRAY + ", " + ChatColor.GOLD + z + ChatColor.DARK_GRAY +
-                                                "]" + ChatColor.GRAY + "."));
+                                        ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
+                                return true;
                             }
-                        }
-                    }
-                } else if (args[0].toLowerCase().equals("leave")) {
-                    if (!inGuild || !opGuild.isPresent()) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're not currently in any guild!"));
-                        return true;
-                    }
 
-                    GuildModel guild = opGuild.get();
+                            Chunk chunk = player.getLocation().getChunk();
+                            if (guild.getTerritory().contains(ChunkUtil.getChunkString(chunk))) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(
+                                                        ChatColor.RED + "Your guild already owns this land!"));
+                                return true;
+                            }
 
-                    if (guild.getMembers().size() == 1 && guild.getMembers().contains(player.getUniqueId())) {
-                        for (UUID uuid : guild.getMembers()) {
-                            User temp = NEGuilds.getUserManager().getTempUser(uuid);
-                            temp.setType(null);
-                            temp.removeGuild();
+                            if (MathUtil.greaterThanEqualTo(guild.getTerritory().size(),
+                                    guild.getMembers().size() * 10)) {
+                                player.sendMessage(Lang.CHAT_TAG
+                                        .getServerMessage(
+                                                ChatColor.RED + "You do not have enough Land Power to claim this!"));
+                                return true;
+                            }
 
+                            Optional<GuildModel> opClaimed = NEGuilds.getGuildRegistry().getGuild(chunk);
+                            if (opClaimed.isPresent()) {
+                                GuildModel guilds = opClaimed.get();
+                                int power = 0;
+                                for (UUID uuid : guild.getMembers()) {
+                                    User temp = NEGuilds.getUserManager().getTempUser(uuid);
+                                    power = power + temp.getPower();
+                                }
+                                power = power / guild.getMembers().size();
+
+                                int powerRival = 0;
+                                for (UUID uuid : guild.getMembers()) {
+                                    User temp = NEGuilds.getUserManager().getTempUser(uuid);
+                                    powerRival = powerRival + temp.getPower();
+                                }
+                                powerRival = powerRival / guild.getMembers().size();
+
+                                if (MathUtil.greaterThan(power, (int) Math.ceil((double) powerRival * 2.5))) {
+                                    guilds.removeTerritory(chunk);
+                                    for (Player players : Bukkit.getOnlinePlayers()) {
+                                        if (guilds.getMembers().contains(players.getUniqueId())) {
+                                            players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                    guild.getColor() + guild.getName() + ChatColor.GRAY +
+                                                            " claimed over your territory at " + ChatColor.DARK_GRAY +
+                                                            "["
+                                                            + ChatColor.GOLD + chunk.getX() + ChatColor.DARK_GRAY +
+                                                            ", " +
+                                                            ChatColor.GOLD + chunk.getZ() + ChatColor.DARK_GRAY + "]" +
+                                                            ChatColor.GRAY + "."));
+                                        }
+                                    }
+                                    if (guilds.getHome().getChunk() == chunk) {
+                                        for (Player players : Bukkit.getOnlinePlayers()) {
+                                            if (guilds.getMembers().contains(players.getUniqueId())) {
+                                                players.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY +
+                                                        "The home of your guild has been unset due to the territory " +
+                                                        "it " +
+                                                        "was overclaimed by " +
+                                                        guild.getColor() + guild.getName() + ChatColor.GRAY + "."));
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                            ChatColor.RED + "This land is already owned by " + guilds.getColor() +
+                                                    guilds.getName() + ChatColor.RED + "."));
+                                    return true;
+                                }
+                            }
+
+                            guild.addTerritory(chunk);
+                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                    ChatColor.GRAY + "You have claimed land at " + ChatColor.DARK_GRAY + "[" +
+                                            ChatColor.GOLD +
+                                            chunk.getX() + ChatColor.DARK_GRAY
+                                            + ", " + ChatColor.GOLD + chunk.getZ() + ChatColor.DARK_GRAY + "]" +
+                                            ChatColor.GRAY + " for your guild."));
                             for (Player players : Bukkit.getOnlinePlayers()) {
-                                if (players.getUniqueId().toString().equals(uuid.toString())) {
+                                if (guild.getMembers().contains(players.getUniqueId())) {
                                     if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
                                         players.sendMessage(Lang.CHAT_TAG.getServerMessage(
                                                 ChatColor.BLUE + player.getName() + ChatColor.GRAY +
-                                                        " has disbanded the guild you were in!"));
+                                                        " claimed land at " +
+                                                        ChatColor.DARK_GRAY + "[" + ChatColor.GOLD + chunk.getX() +
+                                                        ChatColor.DARK_GRAY
+                                                        + ", " + ChatColor.GOLD + chunk.getZ() + ChatColor.DARK_GRAY +
+                                                        "]" +
+                                                        ChatColor.GRAY + " for your guild."));
+                                    }
+                                }
+                            }
+
+                            break;
+                        }
+                        case "help":
+                            if (sender.hasPermission("ne.admin")) {
+                                player.sendMessage(adminHelp1);
+                                return true;
+                            }
+                            player.sendMessage(help1);
+                            return true;
+                        case "show":
+                        case "info": {
+                            if (!opGuild.isPresent()) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(ChatColor.RED + "You're not currently in a guild!"));
+                                return true;
+                            }
+
+                            GuildModel guild = opGuild.get();
+
+                            sendGuildInfo(player, guild);
+                            break;
+                        }
+                        case "home":
+                            if (!inGuild) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(
+                                                        ChatColor.RED + "You're not currently in any guild!"));
+                                return true;
+                            }
+
+                            if (opGuild.get().getHome() == null) {
+                                player.sendMessage(Lang.CHAT_TAG
+                                        .getServerMessage(
+                                                ChatColor.RED + "Your guild does not currently have a home set!"));
+                                return true;
+                            }
+
+                            if (!player.hasPermission("ne.no.cmdwarmup")) {
+                                NEEssentials.getData().dontMove.add(player.getUniqueId());
+                                player.sendMessage(
+                                        Lang.CHAT_TAG.getServerChatTag() + ChatColor.GRAY + "Executing " +
+                                                ChatColor.AQUA +
+                                                "/g" + ChatColor.DARK_AQUA + " home" + ChatColor.GRAY + " in "
+                                                + ChatColor.GOLD + "4 seconds.");
+                                Bukkit.getScheduler().scheduleSyncDelayedTask(NEEssentials.getPlugin(), () -> {
+                                    if (NEEssentials.getData().dontMove.contains(player.getUniqueId())) {
+                                        NEEssentials.getData().lastLocation
+                                                .put(player.getUniqueId(), player.getLocation());
+                                        player.teleport(user.getGuild().get().getHome());
+                                        player.sendMessage(Lang.CHAT_TAG.getServerChatTag() + ChatColor.GRAY +
+                                                "You have teleported to your guild's home!");
+                                        NEEssentials.getData().dontMove.remove(player.getUniqueId());
+                                    }
+                                }, 80L);
+                                return true;
+                            }
+                            NEEssentials.getData().lastLocation.put(player.getUniqueId(), player.getLocation());
+                            player.teleport(user.getGuild().get().getHome());
+                            player.sendMessage(Lang.CHAT_TAG.getServerChatTag() + ChatColor.GRAY +
+                                    "You have teleported to your guild's home!");
+                            break;
+                        case "sethome": {
+                            if (!inGuild) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(
+                                                        ChatColor.RED + "You're not currently in any guild!"));
+                                return true;
+                            }
+
+                            GuildModel guild = opGuild.get();
+
+                            if (rank != RankType.OFFICER && rank != RankType.LEADER) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
+                                return true;
+                            }
+
+                            Chunk chunk = player.getLocation().getChunk();
+                            if (!guild.getTerritory().contains(ChunkUtil.getChunkString(chunk))) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED +
+                                                "You must be in your own territory to set the home of the guild!"));
+                                return true;
+                            }
+
+                            guild.setHome(player.getLocation());
+                            int x = player.getLocation().getBlockX(), y = player.getLocation().getBlockY(), z =
+                                    player.getLocation().getBlockZ();
+                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                    ChatColor.GRAY + "You have set the home of the guild at " + ChatColor.DARK_GRAY +
+                                            "[" +
+                                            ChatColor.GOLD + x + ChatColor.DARK_GRAY + ", "
+                                            + ChatColor.GOLD + y + ChatColor.DARK_GRAY + ", " + ChatColor.GOLD + z +
+                                            ChatColor.DARK_GRAY + "]" + ChatColor.GRAY + "."));
+                            for (Player players : Bukkit.getOnlinePlayers()) {
+                                if (guild.getMembers().contains(players.getUniqueId())) {
+                                    if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
+                                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                        " set the home of the guild at " + ChatColor.DARK_GRAY + "[" +
+                                                        ChatColor.GOLD
+                                                        + x + ChatColor.DARK_GRAY + ", " + ChatColor.GOLD + y +
+                                                        ChatColor.DARK_GRAY + ", " + ChatColor.GOLD + z +
+                                                        ChatColor.DARK_GRAY +
+                                                        "]" + ChatColor.GRAY + "."));
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                        case "leave": {
+                            if (!inGuild) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(
+                                                        ChatColor.RED + "You're not currently in any guild!"));
+                                return true;
+                            }
+
+                            GuildModel guild = opGuild.get();
+
+                            if (guild.getMembers().size() == 1 && guild.getMembers().contains(player.getUniqueId())) {
+                                for (UUID uuid : guild.getMembers()) {
+                                    User temp = NEGuilds.getUserManager().getTempUser(uuid);
+                                    temp.setType(null);
+                                    temp.removeGuild();
+
+                                    for (Player players : Bukkit.getOnlinePlayers()) {
+                                        if (players.getUniqueId().toString().equals(uuid.toString())) {
+                                            if (!players.getUniqueId().toString()
+                                                    .equals(player.getUniqueId().toString())) {
+                                                players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                        ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                                " has disbanded the guild you were in!"));
+                                                return true;
+                                            }
+                                        }
+                                    }
+
+                                    user.setType(null);
+                                    user.removeGuild();
+                                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY +
+                                            "The guild you were in has been disbanded since you were the last member " +
+                                            "of " +
+                                            "the " +
+                                            "guild.."));
+                                    NEGuilds.getGuildRegistry().deleteGuild(guild.getUUID());
+                                }
+                                return true;
+                            }
+
+                            if (rank == RankType.LEADER) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED +
+                                        "In order to leave the guild, you must pass leadership onto another member of" +
+                                        " the" +
+                                        " " +
+                                        "guild.  If you wish to disband the" +
+                                        " guild use /guild disband."));
+                                return true;
+                            }
+
+                            guild.removeMember(player.getUniqueId());
+                            user.removeGuild();
+                            user.setType(null);
+                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                    ChatColor.GRAY + "You have left " + guild.getColor() + guild.getName() +
+                                            ChatColor.GRAY +
+                                            "."));
+                            for (Player players : Bukkit.getOnlinePlayers()) {
+                                if (guild.getMembers().contains(players.getUniqueId())) {
+                                    if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
+                                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                        " has left the guild!"));
                                         return true;
                                     }
                                 }
                             }
-
-                            user.setType(null);
-                            user.removeGuild();
-                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY +
-                                    "The guild you were in has been disbanded since you were the last member of the " +
-                                    "guild.."));
-                            NEGuilds.getGuildRegistry().deleteGuild(guild.getUUID());
+                            break;
                         }
-                        return true;
-                    }
-
-                    if (rank == RankType.LEADER) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED +
-                                "In order to leave the guild, you must pass leadership onto another member of the " +
-                                "guild.  If you wish to disband the" +
-                                " guild use /guild disband."));
-                        return true;
-                    }
-
-                    guild.removeMember(player.getUniqueId());
-                    user.removeGuild();
-                    user.setType(null);
-                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                            ChatColor.GRAY + "You have left " + guild.getColor() + guild.getName() + ChatColor.GRAY +
-                                    "."));
-                    for (Player players : Bukkit.getOnlinePlayers()) {
-                        if (guild.getMembers().contains(players.getUniqueId())) {
-                            if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
-                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                        ChatColor.BLUE + player.getName() + ChatColor.GRAY + " has left the guild!"));
+                        case "unclaim": {
+                            if (!inGuild) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(
+                                                        ChatColor.RED + "You're not currently in any guild!"));
                                 return true;
                             }
-                        }
-                    }
-                } else if (args[0].toLowerCase().equals("unclaim")) {
-                    if (!inGuild || !opGuild.isPresent()) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're not currently in any guild!"));
-                        return true;
-                    }
 
-                    if (rank != RankType.LEADER && rank != RankType.OFFICER) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
-                        return true;
-                    }
-
-                    GuildModel guild = opGuild.get();
-
-                    Chunk chunk = player.getLocation().getChunk();
-                    if (!guild.getTerritory().contains(ChunkUtil.getChunkString(chunk))) {
-                        player.sendMessage(Lang.CHAT_TAG
-                                .getServerMessage(ChatColor.RED + "Your guild does not currently own this territory!"));
-                        return true;
-                    }
-
-                    if (guild.getHome() != null) {
-                        if (guild.getHome().getChunk() == chunk) {
-                            guild.setHome(null);
-                            for (Player players : Bukkit.getOnlinePlayers()) {
-                                if (guild.getMembers().contains(players.getUniqueId())) {
-                                    if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
-                                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY +
-                                                "The home of the guild was removed due to the territory it was in was" +
-                                                " unclaimed!"));
-                                    }
-                                }
+                            if (rank != RankType.LEADER && rank != RankType.OFFICER) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
+                                return true;
                             }
-                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY +
-                                    "The home of the guild was removed due to the territory it was in was unclaimed!"));
-                        }
-                    }
 
-                    for (Player players : Bukkit.getOnlinePlayers()) {
-                        if (guild.getMembers().contains(players.getUniqueId())) {
-                            if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
-                                players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                        ChatColor.BLUE + player.getName() + ChatColor.GRAY +
-                                                " has unclaimed territory at " + ChatColor.DARK_GRAY + "[" +
-                                                ChatColor.GOLD
-                                                + chunk.getX() + ChatColor.DARK_GRAY + ", " + ChatColor.GOLD +
-                                                chunk.getZ() + ChatColor.DARK_GRAY + "]" + ChatColor.GRAY + "."));
-                            }
-                        }
-                    }
-                    guild.removeTerritory(chunk);
-                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                            ChatColor.GRAY + "You have unclaimed territory at " + ChatColor.DARK_GRAY + "[" +
-                                    ChatColor.GOLD + chunk.getX()
-                                    + ChatColor.DARK_GRAY + ", " + ChatColor.GOLD + chunk.getZ() + ChatColor.DARK_GRAY +
-                                    "}" + ChatColor.GRAY + "."));
-                } else if (args[0].toLowerCase().equals("color")) {
-                    if (!inGuild || !opGuild.isPresent()) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're not currently in any guild!"));
-                        return true;
-                    }
-
-                    if (rank != RankType.LEADER && rank != RankType.OFFICER) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
-                        return true;
-                    }
-
-                    player.sendMessage(
-                            Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You have opened Guild Color Shop."));
-                    player.openInventory(NEGuilds.getInventoryListener().inventoryGuildColor(player));
-                } else if (args[0].toLowerCase().equals("admin")) {
-                    if (!player.hasPermission("ne.admin")) {
-                        player.sendMessage(Lang.NO_PERM.getServerMessage());
-                        return true;
-                    }
-
-                    if (!NEGuilds.getGuildTempData().adminBypass.contains(player.getUniqueId())) {
-                        NEGuilds.getGuildTempData().adminBypass.add(player.getUniqueId());
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.GRAY + "You have " + ChatColor.GREEN + "" + ChatColor.UNDERLINE + "enabled" +
-                                        ChatColor.GRAY + " Admin bypass."));
-                        return true;
-                    } else {
-                        NEGuilds.getGuildTempData().adminBypass.remove(player.getUniqueId());
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.GRAY + "You have " + ChatColor.RED + "" + ChatColor.UNDERLINE + "disabled" +
-                                        ChatColor.GRAY + " Admin bypass."));
-                        return true;
-                    }
-                } else if (args[0].toLowerCase().equals("list")) {
-                    sendPage(player, 1);
-                } else if (args[0].toLowerCase().equals("disband")) {
-                    if (!inGuild || !opGuild.isPresent()) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're not currently in any guild!"));
-                        return true;
-                    }
-
-                    if (rank != RankType.LEADER) {
-                        player.sendMessage(Lang.CHAT_TAG
-                                .getServerMessage(ChatColor.RED + "You must be the leader of the guild to do this!"));
-                        return true;
-                    }
-
-                    GuildModel guild = opGuild.get();
-
-                    for (UUID uuid : guild.getMembers()) {
-                        User temp = NEGuilds.getUserManager().getTempUser(uuid);
-                        temp.setType(null);
-                        temp.removeGuild();
-                    }
-
-                    for (Player players : Bukkit.getOnlinePlayers()) {
-                        if (guild.getMembers().contains(players.getUniqueId())) {
-                            if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
-                                players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                        ChatColor.BLUE + player.getName() + ChatColor.GRAY +
-                                                " has disbanded the guild you were in!"));
-                            }
-                        }
-                    }
-                    user.setType(null);
-                    user.removeGuild();
-                    player.sendMessage(
-                            Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "You disbanded the guild you were in!"));
-                    NEGuilds.getGuildRegistry().deleteGuild(guild.getUUID());
-                } else if (args[0].toLowerCase().equals("desc") || args[0].toLowerCase().equals("description")) {
-                    if (!inGuild || !opGuild.isPresent()) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're not currently in any guild!"));
-                        return true;
-                    }
-
-                    GuildModel guild = opGuild.get();
-
-                    if ("".equals(guild.getDescription()) || guild.getDescription() == null) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.RED + "Your guild does not currently have a description set"));
-                        return true;
-                    }
-
-                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                            ChatColor.GRAY + "The description of your guild is: " + guild.getDescription() + "."));
-                } else if (args[0].toLowerCase().equals("map")) {
-                    GuildMapUtil.sendGuildMap(player);
-                } else if (args[0].toLowerCase().equals("seechunks") || args[0].toLowerCase().equals("sc")) {
-                    if (!ChunkBoundaryUtil.showingBoundaries.contains(player.getUniqueId())) {
-                        player.sendMessage(Lang.CHAT_TAG
-                                .getServerMessage(ChatColor.GRAY + "Now showing chunk boundaries around you."));
-                        ChunkBoundaryUtil.startChunkBoundaries(player);
-                    } else {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY + "No longer showing chunk boundaries."));
-                        ChunkBoundaryUtil.stopChunkBoundaries(player);
-                    }
-                } else {
-                    player.sendMessage(Lang.SYNTAX_ERROR.getServerMessage());
-                    return true;
-                }
-            } else if (args.length == 2) {
-                //CREATE, HELP, JOIN, INVITE, SHOW, KICK, NAME, DISBAND, HOME, ALLY, TRUCE, NEUTRAL, ENEMY, UNCLAIM,
-                // DESC, LEADER, PROMOTE, DEMOTE
-                if (args[0].toLowerCase().equals("create")) {
-                    if (inGuild) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.RED + "You must leave your current guild first in order to do this!"));
-                        return true;
-                    }
-
-                    String name = args[1];
-                    if (name.length() > 15) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "That name is too long!"));
-                        return true;
-                    }
-
-                    if (!player.hasPermission("ne.admin") && NEGuilds.getGuildRegistry().containsBannedWord(name)) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "That name contains a banned word!"));
-                        return true;
-                    }
-
-                    if (NEGuilds.getGuildRegistry().guildExists(name)) {
-                        player.sendMessage(Lang.CHAT_TAG
-                                .getServerMessage(ChatColor.RED + "A guild with that name already exists!"));
-                        return true;
-                    }
-
-                    UUID uuid = NEGuilds.getGuildRegistry().createGuild(name, player.getUniqueId());
-                    GuildModel guild = NEGuilds.getGuildRegistry().getGuild(uuid).get();
-                    user.setGuild(uuid);
-                    user.setType(RankType.LEADER);
-                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                            ChatColor.GRAY + "You have created a guild by the name of " + guild.getColor() +
-                                    guild.getName() + ChatColor.GRAY + "."));
-                    for (Player players : Bukkit.getOnlinePlayers()) {
-                        players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.BLUE + player.getName() + ChatColor.GRAY +
-                                        " has created a guild by the name of "
-                                        + guild.getColor() + guild.getName() + ChatColor.GRAY +
-                                        "."));
-                    }
-                } else if (args[0].toLowerCase().equals("help")) {
-                    String preInt = args[1];
-                    if (!NumberUtils.isDigits(preInt)) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "That is not a valid number!"));
-                        return true;
-                    }
-
-                    int page = Integer.parseInt(preInt);
-                    if (page < 1) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "The page number must be at most 1-3!"));
-                        return true;
-                    } else if (page > 3) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "The page number must be at most 1-3!"));
-                        return true;
-                    }
-
-                    if (page == 1) {
-                        if (player.hasPermission("ne.admin")) {
-                            player.sendMessage(adminHelp1);
-                            return true;
-                        }
-                        player.sendMessage(help1);
-                    } else if (page == 2) {
-                        if (player.hasPermission("ne.admin")) {
-                            player.sendMessage(adminHelp2);
-                            return true;
-                        }
-                        player.sendMessage(help2);
-                    } else if (page == 3) {
-                        if (player.hasPermission("ne.admin")) {
-                            player.sendMessage(adminHelp3);
-                            return true;
-                        }
-                        player.sendMessage(help3);
-                    }
-                } else if (args[0].toLowerCase().equals("join")) {
-                    if (inGuild) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.RED + "You must leave your current guild first in order to do this!"));
-                        return true;
-                    }
-                    String name = args[1];
-                    if (!NEGuilds.getGuildRegistry().guildExists(name)) {
-                        player.sendMessage(Lang.CHAT_TAG
-                                .getServerMessage(ChatColor.RED + "A guild with that name does not exists!"));
-                        return true;
-                    }
-
-                    Optional<GuildModel> opGuildd = NEGuilds.getGuildRegistry().getGuild(name);
-                    if (!opGuildd.isPresent()) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "That guild does not exist!"));
-                        return true;
-                    }
-
-                    GuildModel guildd = opGuildd.get();
-
-                    if (!guildd.getInvites().contains(player.getUniqueId())) {
-                        if (!player.hasPermission("ne.admin")) {
-                            player.sendMessage(Lang.CHAT_TAG
-                                    .getServerMessage(ChatColor.RED + "You're not invited to that guild!"));
-                            for (Player players : Bukkit.getOnlinePlayers()) {
-                                if (guildd.getMembers().contains(players.getUniqueId())) {
-                                    players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                            ChatColor.BLUE + player.getName() + ChatColor.GRAY +
-                                                    " tried to join the guild."));
-                                }
-                            }
-                        }
-                    }
-
-                    for (Player players : Bukkit.getOnlinePlayers()) {
-                        if (guildd.getMembers().contains(players.getUniqueId())) {
-                            players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                    ChatColor.BLUE + player.getName() + ChatColor.GRAY + " has joined the guild."));
-                        }
-                    }
-                    guildd.addMember(player.getUniqueId());
-                    user.setGuild(guildd);
-                    user.setType(RankType.RECRUIT);
-                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                            ChatColor.GRAY + "You have joined " + guildd.getColor() + guildd.getName() +
-                                    ChatColor.GRAY + "."));
-                    if (guildd.getInvites().contains(player.getUniqueId())) {
-                        guildd.removeInvite(player.getUniqueId());
-                    }
-                } else if (args[0].toLowerCase().equals("invite") || args[0].toLowerCase().equals("inv")) {
-                    if (!inGuild || !opGuild.isPresent()) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're not currently in any guild!"));
-                        return true;
-                    }
-
-                    if (rank != RankType.OFFICER && rank != RankType.LEADER) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
-                        return true;
-                    }
-
-                    OfflinePlayer invitee = Bukkit.getOfflinePlayer(args[1]);
-                    GuildModel guild = opGuild.get();
-
-                    if (guild.getMembers().contains(invitee.getUniqueId())) {
-                        player.sendMessage(Lang.CHAT_TAG
-                                .getServerMessage(ChatColor.RED + "That player is already in your guild!"));
-                        return true;
-                    }
-
-                    if (!guild.getInvites().contains(invitee.getUniqueId())) {
-                        guild.addInvite(invitee.getUniqueId());
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.GRAY + "You have invited " + ChatColor.BLUE + invitee.getName() +
-                                        ChatColor.GRAY + " to the guild!"));
-                        for (Player players : Bukkit.getOnlinePlayers()) {
-                            if (guild.getMembers().contains(players.getUniqueId())) {
-                                if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
-                                    players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                            ChatColor.BLUE + player.getName() + ChatColor.GRAY + " has invited " +
-                                                    ChatColor.BLUE + invitee.getName()
-                                                    + ChatColor.GRAY + " to the guild!"));
-                                }
-                            } else {
-                                if (invitee.getUniqueId().toString().equals(players.getUniqueId().toString())) {
-                                    players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                            ChatColor.BLUE + player.getName() + ChatColor.GRAY +
-                                                    " has invited you to " + guild.getColor() + guild.getName() +
-                                                    ChatColor.GRAY + "."));
-                                }
-                            }
-                        }
-                    } else {
-                        guild.removeInvite(invitee.getUniqueId());
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.GRAY + "You have revoked " + ChatColor.BLUE + invitee.getName() + "'s " +
-                                        ChatColor.GRAY + "invitation to the guild!"));
-                        for (Player players : Bukkit.getOnlinePlayers()) {
-                            if (guild.getMembers().contains(players.getUniqueId())) {
-                                if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
-                                    players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                            ChatColor.BLUE + player.getName() + ChatColor.GRAY + " has revoked " +
-                                                    ChatColor.BLUE + invitee + "'s "
-                                                    + ChatColor.GRAY + "invitation to the guild!"));
-                                }
-                            } else {
-                                if (invitee.getUniqueId().toString().equals(players.getUniqueId().toString())) {
-                                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                            ChatColor.BLUE + player.getName() + ChatColor.GRAY +
-                                                    " has revoked your invitation to " + guild.getColor() +
-                                                    guild.getName() + ChatColor.GRAY + "."));
-                                }
-                            }
-                        }
-                    }
-                } else if (args[0].toLowerCase().equals("show") || args[0].toLowerCase().equals("info")) {
-                    Optional<GuildModel> opGuildd = Optional.empty();
-                    if (NEGuilds.getGuildRegistry().guildExists(args[1])) {
-                        opGuildd = NEGuilds.getGuildRegistry().getGuild(args[1]);
-                    } else {
-                        if (NEGuilds.getUserManager().userExists(Bukkit.getOfflinePlayer(args[1]).getUniqueId())) {
-                            opGuildd = NEGuilds.getUserManager()
-                                    .getTempUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
-                        }
-                    }
-
-                    if (!opGuildd.isPresent()) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.RED + "That guild does not exist or that player is not in a guild!"));
-                        return true;
-                    }
-
-                    sendGuildInfo(player, opGuildd.get());
-                } else if (args[0].toLowerCase().equals("kick")) {
-                    if (!inGuild || !opGuild.isPresent()) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're not currently in any guild!"));
-                        return true;
-                    }
-
-                    if (user.getType() != RankType.LEADER && user.getType() != RankType.OFFICER) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
-                        return true;
-                    }
-
-                    GuildModel guild = opGuild.get();
-
-                    String name = args[1];
-                    OfflinePlayer kickee = Bukkit.getOfflinePlayer(name);
-                    User temp = NEGuilds.getUserManager().getTempUser(kickee.getUniqueId());
-                    if (kickee.getUniqueId().toString().equals(player.getUniqueId().toString())) {
-                        player.sendMessage(Lang.CHAT_TAG
-                                .getServerMessage(ChatColor.RED + "You can not kick yourself from the guild!"));
-                        return true;
-                    }
-                    if (!guild.getMembers().contains(kickee.getUniqueId())) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "That player is not in your guild!"));
-                        return true;
-                    }
-
-                    if (rank == RankType.OFFICER && temp.getType() == RankType.OFFICER) {
-                        player.sendMessage(Lang.CHAT_TAG
-                                .getServerMessage(ChatColor.RED + "You can not kick other officers from the guild!"));
-                        return true;
-                    }
-
-                    if (rank == RankType.OFFICER && temp.getType() == RankType.LEADER) {
-                        player.sendMessage(Lang.CHAT_TAG
-                                .getServerMessage(ChatColor.RED + "You can not kick the leader from the guild!"));
-                        return true;
-                    }
-
-                    guild.removeMember(kickee.getUniqueId());
-                    temp.removeGuild();
-                    temp.setType(null);
-                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                            ChatColor.GRAY + "You have kicked " + ChatColor.BLUE + kickee.getName() + ChatColor.GRAY +
-                                    " from the guild!"));
-                    for (Player players : Bukkit.getOnlinePlayers()) {
-                        if (guild.getMembers().contains(players.getUniqueId())) {
-                            if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
-                                players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                        ChatColor.BLUE + player.getName() + ChatColor.GRAY + " has kicked " +
-                                                ChatColor.BLUE + kickee.getName() + ChatColor.GRAY +
-                                                " from the guild!"));
-                            }
-                        } else if (players.getUniqueId().toString().equals(kickee.getUniqueId().toString())) {
-                            players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                    ChatColor.BLUE + player.getName() + ChatColor.GRAY +
-                                            " has kicked you from the guild!"));
-                        }
-                    }
-                } else if (args[0].toLowerCase().equals("name")) {
-                    if (!inGuild || !opGuild.isPresent()) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're not currently in any guild!"));
-                        return true;
-                    }
-
-                    if (rank != RankType.LEADER) {
-                        player.sendMessage(Lang.CHAT_TAG
-                                .getServerMessage(ChatColor.RED + "You must be the leader of the guild to do this!"));
-                        return true;
-                    }
-
-                    String name = args[1];
-                    if (name.length() > 15) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "That name is too long!"));
-                        return true;
-                    }
-
-                    if (!player.hasPermission("ne.admin") && NEGuilds.getGuildRegistry().containsBannedWord(name)) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "That name contains a banned word!"));
-                        return true;
-                    }
-
-                    if (NEGuilds.getGuildRegistry().guildExists(name)) {
-                        player.sendMessage(Lang.CHAT_TAG
-                                .getServerMessage(ChatColor.RED + "A guild with that name already exists!"));
-                        return true;
-                    }
-
-                    GuildModel guild = opGuild.get();
-
-                    guild.setName(name);
-                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                            ChatColor.GRAY + "You have set the name of the guild to " + guild.getColor() +
-                                    guild.getName() + ChatColor.GRAY + "."));
-                    for (Player players : Bukkit.getOnlinePlayers()) {
-                        if (guild.getMembers().contains(players.getUniqueId())) {
-                            if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
-                                players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                        ChatColor.BLUE + player.getName() + ChatColor.GRAY +
-                                                " has set the name of the guild to " + guild.getColor() +
-                                                guild.getName() + ChatColor.GRAY + "."));
-                            }
-                        }
-                    }
-                } else if (args[0].toLowerCase().equals("disband")) {
-                    if (!player.hasPermission("ne.admin")) {
-                        player.sendMessage(Lang.NO_PERM.getServerMessage());
-                        return true;
-                    }
-
-                    Optional<GuildModel> opGuildd = Optional.empty();
-                    if (NEGuilds.getGuildRegistry().guildExists(args[1])) {
-                        opGuildd = NEGuilds.getGuildRegistry().getGuild(args[1]);
-                    } else {
-                        if (NEGuilds.getUserManager().userExists(Bukkit.getOfflinePlayer(args[1]).getUniqueId())) {
-                            opGuildd = NEGuilds.getUserManager()
-                                    .getTempUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
-                        }
-                    }
-
-                    if (!opGuildd.isPresent()) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.RED + "That guild does not exist or that player is not in a guild!"));
-                        return true;
-                    }
-
-                    GuildModel guildd = opGuildd.get();
-
-                    for (UUID uuid : guildd.getMembers()) {
-                        User temp = NEGuilds.getUserManager().getTempUser(uuid);
-                        temp.setType(null);
-                        temp.removeGuild();
-                    }
-
-                    for (Player players : Bukkit.getOnlinePlayers()) {
-                        if (guildd.getMembers().contains(players.getUniqueId())) {
-                            if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
-                                players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                        ChatColor.BLUE + player.getName() + ChatColor.GRAY +
-                                                " has disbanded the guild you were in!"));
-                            }
-                        }
-                    }
-
-                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                            ChatColor.GRAY + "You have disbanded guild " + guildd.getColor() + guildd.getName() +
-                                    ChatColor.GRAY + "."));
-                    NEGuilds.getGuildRegistry().deleteGuild(guildd.getUUID());
-                } else if (args[0].toLowerCase().equals("home")) {
-                    if (!player.hasPermission("ne.admin")) {
-                        player.sendMessage(Lang.NO_PERM.getServerMessage());
-                        return true;
-                    }
-
-                    Optional<GuildModel> opGuildd = Optional.empty();
-                    if (NEGuilds.getGuildRegistry().guildExists(args[1])) {
-                        opGuildd = NEGuilds.getGuildRegistry().getGuild(args[1]);
-                    } else {
-                        if (NEGuilds.getUserManager().userExists(Bukkit.getOfflinePlayer(args[1]).getUniqueId())) {
-                            opGuildd = NEGuilds.getUserManager()
-                                    .getTempUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
-                        }
-                    }
-
-                    if (!opGuildd.isPresent()) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.RED + "That guild does not exist or that player is not in a guild!"));
-                        return true;
-                    }
-
-                    GuildModel guildd = opGuildd.get();
-
-                    if (guildd.getHome() == null) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "That guild does not have a home set!"));
-                        return true;
-                    }
-                    player.teleport(guildd.getHome());
-                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                            ChatColor.GRAY + "You have teleported to " + guildd.getColor() + guildd.getName() +
-                                    ChatColor.GRAY + " guild home."));
-                } else if (args[0].toLowerCase().equals("ally")) {
-                    if (!inGuild || !opGuild.isPresent()) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're not currently in any guild!"));
-                        return true;
-                    }
-
-                    GuildModel guild = opGuild.get();
-
-                    if (rank != RankType.LEADER && rank != RankType.OFFICER) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
-                        return true;
-                    }
-
-                    Optional<GuildModel> opGuildd = Optional.empty();
-                    if (NEGuilds.getGuildRegistry().guildExists(args[1])) {
-                        opGuildd = NEGuilds.getGuildRegistry().getGuild(args[1]);
-                    } else {
-                        if (NEGuilds.getUserManager().userExists(Bukkit.getOfflinePlayer(args[1]).getUniqueId())) {
-                            opGuildd = NEGuilds.getUserManager()
-                                    .getTempUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
-                        }
-                    }
-
-                    if (!opGuildd.isPresent()) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.RED + "That guild does not exist or that player is not in a guild!"));
-                        return true;
-                    }
-
-                    GuildModel guildd = opGuildd.get();
-
-                    if (guild.getUUID().equals(guildd.getUUID())) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.RED + "You can not send a relation wish to your own guild!"));
-                        return true;
-                    }
-
-                    if (guildd.getRelations().containsKey(guild.getUUID()) &&
-                            guildd.getRelations().get(guild.getUUID()) == RelationType.ALLY) {
-                        if (guild.isAlly(guildd)) {
-                            player.sendMessage(Lang.CHAT_TAG
-                                    .getServerMessage(ChatColor.RED + "You're already allied with that guild!"));
-                            return true;
-                        } else if (guild.getRelations().containsKey(guildd.getUUID()) &&
-                                guild.getRelations().get(guildd.getUUID()) == RelationType.ALLY) {
-                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                    ChatColor.RED + "You already have that relation wish set with that guild!"));
-                            return true;
-                        }
-
-                        guild.addRelation(guildd.getUUID(), RelationType.ALLY);
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.GRAY + "You have accepted " + guildd.getColor() + guildd.getName() + "'s " +
-                                        ChatColor.GRAY + "wish to be allies."));
-                        for (Player players : Bukkit.getOnlinePlayers()) {
-                            if (guild.getMembers().contains(players.getUniqueId())) {
-                                if (!players.getUniqueId().equals(player.getUniqueId())) {
-                                    players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                            ChatColor.BLUE + player.getName() + ChatColor.GRAY + " has accepted " +
-                                                    guildd.getColor() + guildd.getName() + "'s " + ChatColor.GRAY +
-                                                    "wish to be allies."));
-                                }
-                            } else if (guildd.getMembers().contains(players.getUniqueId())) {
-                                players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                        guild.getColor() + guild.getName() + ChatColor.GRAY +
-                                                " has accepted your wish to be allies"));
-                            }
-                        }
-                    } else {
-                        if (guild.isAlly(guildd)) {
-                            player.sendMessage(Lang.CHAT_TAG
-                                    .getServerMessage(ChatColor.RED + "You're already allied with that guild!"));
-                            return true;
-                        } else if (guild.getRelations().containsKey(guildd.getUUID()) &&
-                                guild.getRelations().get(guildd.getUUID()) == RelationType.ALLY) {
-                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                    ChatColor.RED + "You already have that relation wish set with that guild!"));
-                            return true;
-                        }
-
-                        guild.addRelation(guildd.getUUID(), RelationType.ALLY);
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.GRAY + "You have requested to be allies with  " + guildd.getColor() +
-                                        guildd.getName() + ChatColor.GRAY + "."));
-                        for (Player players : Bukkit.getOnlinePlayers()) {
-                            if (guild.getMembers().contains(players.getUniqueId())) {
-                                if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
-                                    players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                            ChatColor.BLUE + player.getName() + ChatColor.GRAY +
-                                                    " has requested to be allies with  " + guildd.getColor() +
-                                                    guildd.getName() + ChatColor.GRAY + "."));
-                                }
-                            } else if (guildd.getMembers().contains(players.getUniqueId())) {
-                                players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                        guild.getColor() + guild.getName() + ChatColor.GRAY +
-                                                " has requested to be allies"));
-                            }
-                        }
-                    }
-                } else if (args[0].toLowerCase().equals("truce")) {
-                    if (!inGuild || !opGuild.isPresent()) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're not currently in any guild!"));
-                        return true;
-                    }
-
-                    if (rank != RankType.LEADER && rank != RankType.OFFICER) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
-                        return true;
-                    }
-
-                    GuildModel guild = opGuild.get();
-
-                    Optional<GuildModel> opGuildd = Optional.empty();
-                    if (NEGuilds.getGuildRegistry().guildExists(args[1])) {
-                        opGuildd = NEGuilds.getGuildRegistry().getGuild(args[1]);
-                    } else {
-                        if (NEGuilds.getUserManager().userExists(Bukkit.getOfflinePlayer(args[1]).getUniqueId())) {
-                            opGuildd = NEGuilds.getUserManager()
-                                    .getTempUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
-                        }
-                    }
-
-                    if (!opGuildd.isPresent()) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.RED + "That guild does not exist or that player is not in a guild!"));
-                        return true;
-                    }
-
-                    GuildModel guildd = opGuildd.get();
-
-                    if (guild.getUUID().equals(guildd.getUUID())) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.RED + "You can not send a relation wish to your own guild!"));
-                        return true;
-                    }
-
-                    if (guildd.getRelations().containsKey(guild.getUUID()) &&
-                            guildd.getRelations().get(guild.getUUID()) == RelationType.TRUCE) {
-                        if (guild.isTruce(guildd)) {
-                            player.sendMessage(Lang.CHAT_TAG
-                                    .getServerMessage(ChatColor.RED + "You're already truced with that guild!"));
-                            return true;
-                        } else if (guild.getRelations().containsKey(guildd.getUUID()) &&
-                                guild.getRelations().get(guildd.getUUID()) == RelationType.TRUCE) {
-                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                    ChatColor.RED + "You already have that relation wish set with that guild!"));
-                            return true;
-                        }
-
-                        guild.addRelation(guildd.getUUID(), RelationType.TRUCE);
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.GRAY + "You have accepted " + guildd.getColor() + guildd.getName() + "'s " +
-                                        ChatColor.GRAY + "wish to be truced."));
-                        for (Player players : Bukkit.getOnlinePlayers()) {
-                            if (guild.getMembers().contains(players.getUniqueId())) {
-                                if (!players.getUniqueId().equals(player.getUniqueId())) {
-                                    players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                            ChatColor.BLUE + player.getName() + ChatColor.GRAY + " has accepted " +
-                                                    guildd.getColor() + guildd.getName() + "'s " + ChatColor.GRAY +
-                                                    "wish to be truced."));
-                                }
-                            } else if (guildd.getMembers().contains(players.getUniqueId())) {
-                                players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                        guild.getColor() + guild.getName() + ChatColor.GRAY +
-                                                " has accepted your wish to be truced"));
-                            }
-                        }
-                    } else {
-                        if (guild.isTruce(guildd)) {
-                            player.sendMessage(Lang.CHAT_TAG
-                                    .getServerMessage(ChatColor.RED + "You're already allied with that guild!"));
-                            return true;
-                        } else if (guild.getRelations().containsKey(guildd.getUUID()) &&
-                                guild.getRelations().get(guildd.getUUID()) == RelationType.TRUCE) {
-                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                    ChatColor.RED + "You already have that relation wish set with that guild!"));
-                            return true;
-                        }
-
-                        guild.addRelation(guildd.getUUID(), RelationType.TRUCE);
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.GRAY + "You have requested to be truced with  " + guildd.getColor() +
-                                        guildd.getName() + ChatColor.GRAY + "."));
-                        for (Player players : Bukkit.getOnlinePlayers()) {
-                            if (guild.getMembers().contains(players.getUniqueId())) {
-                                if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
-                                    players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                            ChatColor.BLUE + player.getName() + ChatColor.GRAY +
-                                                    " has requested to be truced with  " + guildd.getColor() +
-                                                    guildd.getName() + ChatColor.GRAY + "."));
-                                }
-                            } else if (guildd.getMembers().contains(players.getUniqueId())) {
-                                players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                        guild.getColor() + guild.getName() + ChatColor.GRAY +
-                                                " has requested to be truced"));
-                            }
-                        }
-                    }
-                } else if (args[0].toLowerCase().equals("neutral")) {
-                    if (!inGuild || !opGuild.isPresent()) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're not currently in any guild!"));
-                        return true;
-                    }
-
-                    if (rank != RankType.LEADER && rank != RankType.OFFICER) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
-                        return true;
-                    }
-
-                    GuildModel guild = opGuild.get();
-
-                    Optional<GuildModel> opGuildd = Optional.empty();
-                    if (NEGuilds.getGuildRegistry().guildExists(args[1])) {
-                        opGuildd = NEGuilds.getGuildRegistry().getGuild(args[1]);
-                    } else {
-                        if (NEGuilds.getUserManager().userExists(Bukkit.getOfflinePlayer(args[1]).getUniqueId())) {
-                            opGuildd = NEGuilds.getUserManager()
-                                    .getTempUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
-                        }
-                    }
-
-                    if (!opGuildd.isPresent()) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.RED + "That guild does not exist or that player is not in a guild!"));
-                        return true;
-                    }
-
-                    GuildModel guildd = opGuildd.get();
-
-                    if (guild.getUUID().equals(guildd.getUUID())) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.RED + "You can not send a relation wish to your own guild!"));
-                        return true;
-                    }
-
-                    if (guildd.getRelations().containsKey(guild.getUUID()) &&
-                            guildd.getRelations().get(guild.getUUID()) == RelationType.NEUTRAL) {
-                        if (guild.isNeutral(guildd)) {
-                            player.sendMessage(Lang.CHAT_TAG
-                                    .getServerMessage(ChatColor.RED + "You're already neutral with that guild!"));
-                            return true;
-                        } else if (guild.getRelations().containsKey(guildd.getUUID()) &&
-                                guild.getRelations().get(guildd.getUUID()) == RelationType.NEUTRAL) {
-                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                    ChatColor.RED + "You already have that relation wish set with that guild!"));
-                            return true;
-                        }
-
-                        guild.addRelation(guildd.getUUID(), RelationType.NEUTRAL);
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.GRAY + "You have accepted " + guildd.getColor() + guildd.getName() + "'s " +
-                                        ChatColor.GRAY + "wish to be neutral."));
-                        for (Player players : Bukkit.getOnlinePlayers()) {
-                            if (guild.getMembers().contains(players.getUniqueId())) {
-                                if (!players.getUniqueId().equals(player.getUniqueId())) {
-                                    players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                            ChatColor.BLUE + player.getName() + ChatColor.GRAY + " has accepted " +
-                                                    guildd.getColor() + guildd.getName() + "'s " + ChatColor.GRAY +
-                                                    "wish to be neutral."));
-                                }
-                            } else if (guildd.getMembers().contains(players.getUniqueId())) {
-                                players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                        guild.getColor() + guild.getName() + ChatColor.GRAY +
-                                                " has accepted your wish to be neutral."));
-                            }
-                        }
-                    } else {
-                        if (guild.isNeutral(guildd)) {
-                            player.sendMessage(Lang.CHAT_TAG
-                                    .getServerMessage(ChatColor.RED + "You're already neutral with that guild!"));
-                            return true;
-                        } else if (guild.getRelations().containsKey(guildd.getUUID()) &&
-                                guild.getRelations().get(guildd.getUUID()) == RelationType.NEUTRAL) {
-                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                    ChatColor.RED + "You already have that relation wish set with that guild!"));
-                            return true;
-                        }
-
-                        guild.addRelation(guildd.getUUID(), RelationType.NEUTRAL);
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.GRAY + "You have requested to be neutral with  " + guildd.getColor() +
-                                        guildd.getName() + ChatColor.GRAY + "."));
-                        for (Player players : Bukkit.getOnlinePlayers()) {
-                            if (guild.getMembers().contains(players.getUniqueId())) {
-                                if (!players.getUniqueId().equals(player.getUniqueId())) {
-                                    players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                            ChatColor.BLUE + player.getName() + ChatColor.GRAY +
-                                                    " has requested to be neutral with  " + guildd.getColor() +
-                                                    guildd.getName() + ChatColor.GRAY + "."));
-                                }
-                            } else if (guildd.getMembers().contains(players.getUniqueId())) {
-                                players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                        guild.getColor() + guild.getName() + ChatColor.GRAY +
-                                                " has requested to be neutral."));
-                            }
-                        }
-                    }
-                } else if (args[0].toLowerCase().equals("enemy")) {
-                    if (!inGuild || !opGuild.isPresent()) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're not currently in any guild!"));
-                        return true;
-                    }
-
-                    if (rank != RankType.LEADER && rank != RankType.OFFICER) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
-                        return true;
-                    }
-
-                    GuildModel guild = opGuild.get();
-
-                    Optional<GuildModel> opGuildd = Optional.empty();
-                    if (NEGuilds.getGuildRegistry().guildExists(args[1])) {
-                        opGuildd = NEGuilds.getGuildRegistry().getGuild(args[1]);
-                    } else {
-                        if (NEGuilds.getUserManager().userExists(Bukkit.getOfflinePlayer(args[1]).getUniqueId())) {
-                            opGuildd = NEGuilds.getUserManager()
-                                    .getTempUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
-                        }
-                    }
-
-                    if (!opGuildd.isPresent()) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.RED + "That guild does not exist or that player is not in a guild!"));
-                        return true;
-                    }
-
-                    GuildModel guildd = opGuildd.get();
-
-                    if (guild.getUUID().equals(guildd.getUUID())) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.RED + "You can not send a relation wish to your own guild!"));
-                        return true;
-                    }
-
-                    if (!guildd.getRelations().containsKey(guild.getUUID()) ||
-                            guildd.getRelations().get(guild.getUUID()) != RelationType.ENEMY) {
-                        if (guild.getRelations().containsKey(guildd.getUUID()) &&
-                                guild.getRelations().get(guildd.getUUID()) == RelationType.ENEMY) {
-                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                    ChatColor.RED + "You already have that relation wish set with that guild!"));
-                            return true;
-                        }
-
-                        guild.addRelation(guildd.getUUID(), RelationType.ENEMY);
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.GRAY + "You have enemied " + guildd.getColor() + guildd.getName() +
-                                        ChatColor.GRAY + "."));
-                        for (Player players : Bukkit.getOnlinePlayers()) {
-                            if (guild.getMembers().contains(players.getUniqueId())) {
-                                if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
-                                    players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                            ChatColor.BLUE + player.getName() + ChatColor.GRAY + " has enemied  " +
-                                                    guildd.getColor() + guildd.getName() + ChatColor.GRAY + "."));
-                                }
-                            } else if (guildd.getMembers().contains(players.getUniqueId())) {
-                                players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                        guild.getColor() + guild.getName() + ChatColor.GRAY + " has enemied you."));
-                            }
-                        }
-                    }
-                } else if (args[0].toLowerCase().equals("unclaim")) {
-                    if (args[1].toLowerCase().equals("all")) {
-                        if (!inGuild || !opGuild.isPresent()) {
-                            player.sendMessage(Lang.CHAT_TAG
-                                    .getServerMessage(ChatColor.RED + "You're not currently in any guild!"));
-                            return true;
-                        }
-
-                        if (rank != RankType.LEADER && rank != RankType.OFFICER) {
-                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                    ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
-                            return true;
-                        }
-
-                        GuildModel guild = opGuild.get();
-
-                        for (String string : guild.getTerritory()) {
-                            Chunk chunk = ChunkUtil.getChunk(string);
-                            if (!chunk.isLoaded()) {
-                                chunk.load();
+                            GuildModel guild = opGuild.get();
+
+                            Chunk chunk = player.getLocation().getChunk();
+                            if (!guild.getTerritory().contains(ChunkUtil.getChunkString(chunk))) {
+                                player.sendMessage(Lang.CHAT_TAG
+                                        .getServerMessage(
+                                                ChatColor.RED + "Your guild does not currently own this territory!"));
+                                return true;
                             }
 
                             if (guild.getHome() != null) {
@@ -1368,7 +477,9 @@ public class GuildCommand implements CommandExecutor {
                                                     .equals(player.getUniqueId().toString())) {
                                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY +
                                                         "The home of the guild was removed due to the territory it " +
-                                                        "was in was unclaimed!"));
+                                                        "was in" +
+                                                        " was" +
+                                                        " unclaimed!"));
                                             }
                                         }
                                     }
@@ -1377,444 +488,1561 @@ public class GuildCommand implements CommandExecutor {
                                             "unclaimed!"));
                                 }
                             }
+
+                            for (Player players : Bukkit.getOnlinePlayers()) {
+                                if (guild.getMembers().contains(players.getUniqueId())) {
+                                    if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
+                                        players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                        " has unclaimed territory at " + ChatColor.DARK_GRAY + "[" +
+                                                        ChatColor.GOLD
+                                                        + chunk.getX() + ChatColor.DARK_GRAY + ", " + ChatColor.GOLD +
+                                                        chunk.getZ() + ChatColor.DARK_GRAY + "]" + ChatColor.GRAY +
+                                                        "."));
+                                    }
+                                }
+                            }
                             guild.removeTerritory(chunk);
-                        }
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.GRAY + "You have unclaimed all of your guild's territory!"));
-                        for (Player players : Bukkit.getOnlinePlayers()) {
-                            if (guild.getMembers().contains(players.getUniqueId())) {
-                                if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
-                                    players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                            ChatColor.BLUE + player.getName() + ChatColor.GRAY +
-                                                    " has unclaimed all of your guild's territory!"));
-                                }
-                            }
-                        }
-                    } else {
-                        player.sendMessage(Lang.SYNTAX_ERROR.getServerMessage());
-                    }
-                } else if (args[0].toLowerCase().equals("desc") || args[0].toLowerCase().equals("description")) {
-                    if (!inGuild || !opGuild.isPresent()) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're not currently in any guild!"));
-                    }
-
-                    setDescription(player, opGuild.get(), args);
-                } else if (args[0].toLowerCase().equals("leader")) {
-                    if (!inGuild || !opGuild.isPresent()) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're not currently in any guild!"));
-                        return true;
-                    }
-
-                    if (user.getType() != RankType.LEADER) {
-                        player.sendMessage(Lang.CHAT_TAG
-                                .getServerMessage(ChatColor.RED + "You must be the leader of the guild to do this!"));
-                        return true;
-                    }
-
-                    GuildModel guild = opGuild.get();
-
-                    String name = args[1];
-                    OfflinePlayer leader = Bukkit.getOfflinePlayer(name);
-                    if (leader.getUniqueId().toString().equals(player.getUniqueId().toString())) {
-                        player.sendMessage(Lang.CHAT_TAG
-                                .getServerMessage(ChatColor.RED + "You're already the leader of the guild!"));
-                        return true;
-                    }
-                    User temp = NEGuilds.getUserManager().getTempUser(leader.getUniqueId());
-                    if (!guild.getMembers().contains(leader.getUniqueId())) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "That player is not in your guild!"));
-                        return true;
-                    }
-
-                    temp.setType(RankType.LEADER);
-                    guild.setLeader(temp.getUUID());
-                    user.setType(RankType.OFFICER);
-                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                            ChatColor.GRAY + "You have made " + ChatColor.BLUE + leader.getName() + ChatColor.GRAY +
-                                    " the leader of the guild!"));
-                    for (Player players : Bukkit.getOnlinePlayers()) {
-                        if (players.getUniqueId().toString().equals(leader.getUniqueId().toString())) {
-                            players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                    ChatColor.BLUE + player.getName() + ChatColor.GRAY +
-                                            " has made you the leader of the guild!"));
-                        }
-                        if (guild.getMembers().contains(players.getUniqueId())) {
-                            if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
-                                players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                        ChatColor.BLUE + player.getName() + ChatColor.GRAY + " has made " +
-                                                ChatColor.BLUE + leader.getName() + ChatColor.GRAY +
-                                                " the leader of the guild!"));
-                            }
-                        }
-                    }
-                } else if (args[0].toLowerCase().equals("promote")) {
-                    if (!inGuild || !opGuild.isPresent()) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're not currently in any guild!"));
-                        return true;
-                    }
-
-                    if (rank != RankType.LEADER && rank != RankType.OFFICER) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
-                        return true;
-                    }
-
-                    GuildModel guild = opGuild.get();
-
-                    String name = args[1];
-                    OfflinePlayer off = Bukkit.getOfflinePlayer(name);
-                    User temp = NEGuilds.getUserManager().getTempUser(off.getUniqueId());
-                    if (!guild.getMembers().contains(off.getUniqueId())) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "That player is not in your guild!"));
-                    }
-                    if (rank == RankType.LEADER) {
-                        switch (temp.getType()) {
-                            case RECRUIT:
-                                temp.setType(RankType.MEMBER);
-                                break;
-                            case MEMBER:
-                                temp.setType(RankType.OFFICER);
-                                break;
-                            case OFFICER:
-                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED +
-                                        "To make that player the leader of the guild do /guild leader [player]."));
-                                return true;
-                            case LEADER:
-                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                        ChatColor.RED + "That member is already the leader of the guild!"));
-                                return true;
-                            default:
-                                temp.setType(RankType.RECRUIT);
-                                break;
-                        }
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.GRAY + "You have promoted " + ChatColor.BLUE + off.getName() +
-                                        ChatColor.GRAY + " to " + ChatColor.BLUE + temp.getType().getName() +
-                                        ChatColor.GRAY + "."));
-                        for (Player players : Bukkit.getOnlinePlayers()) {
-                            if (guild.getMembers().contains(players.getUniqueId())) {
-                                if (players.getUniqueId().toString().equals(off.getUniqueId().toString())) {
-                                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                            ChatColor.GRAY + "You have been promoted to " + ChatColor.BLUE +
-                                                    temp.getType().getName() + ChatColor.GRAY + "."));
-                                }
-                                if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
-                                    players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                            ChatColor.BLUE + player.getName() + ChatColor.GRAY + " has promoted " +
-                                                    ChatColor.BLUE + off.getName() + ChatColor.GRAY + " to " +
-                                                    ChatColor.BLUE + temp.getType().getName() + ChatColor.GRAY + "."));
-                                }
-                            }
-                        }
-                    } else {
-                        switch (temp.getType()) {
-                            case RECRUIT:
-                                temp.setType(RankType.MEMBER);
-                                break;
-                            case MEMBER:
-                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                        ChatColor.RED + "You can not make other members an officer of the guild!"));
-                            case OFFICER:
-                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                        ChatColor.RED + "You can not change the leader of the guild!"));
-                                return true;
-                            case LEADER:
-                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                        ChatColor.RED + "That member is already the leader of the guild!"));
-                                return true;
-                            default:
-                                temp.setType(RankType.RECRUIT);
-                                break;
-                        }
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.GRAY + "You have promoted " + ChatColor.BLUE + off.getName() +
-                                        ChatColor.GRAY + " to " + ChatColor.BLUE + temp.getType().getName() +
-                                        ChatColor.GRAY + "."));
-                        for (Player players : Bukkit.getOnlinePlayers()) {
-                            if (guild.getMembers().contains(players.getUniqueId())) {
-                                if (players.getUniqueId().toString().equals(off.getUniqueId().toString())) {
-                                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                            ChatColor.GRAY + "You have been promoted to " + ChatColor.BLUE +
-                                                    temp.getType().getName() + ChatColor.GRAY + "."));
-                                }
-                                if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
-                                    players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                            ChatColor.BLUE + player.getName() + ChatColor.GRAY + " has promoted " +
-                                                    ChatColor.BLUE + off.getName() + ChatColor.GRAY + " to " +
-                                                    ChatColor.BLUE + temp.getType().getName() + ChatColor.GRAY + "."));
-                                }
-                            }
-                        }
-                    }
-                } else if (args[0].toLowerCase().equals("demote")) {
-                    if (!inGuild || !opGuild.isPresent()) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're not currently in any guild!"));
-                        return true;
-                    }
-
-                    if (rank != RankType.LEADER && rank != RankType.OFFICER) {
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
-                        return true;
-                    }
-
-                    GuildModel guild = opGuild.get();
-
-                    String name = args[1];
-                    OfflinePlayer off = Bukkit.getOfflinePlayer(name);
-                    User temp = NEGuilds.getUserManager().getTempUser(off.getUniqueId());
-                    if (!guild.getMembers().contains(off.getUniqueId())) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "That player is not in your guild!"));
-                    }
-                    if (rank == RankType.LEADER) {
-                        switch (temp.getType()) {
-                            case RECRUIT:
-                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                        ChatColor.RED + "This player already has the lowest guild rank!"));
-                                return true;
-                            case MEMBER:
-                                temp.setType(RankType.RECRUIT);
-                                break;
-                            case OFFICER:
-                                temp.setType(RankType.MEMBER);
-                                break;
-                            case LEADER:
-                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                        ChatColor.RED + "That member is already the leader of the guild!"));
-                                return true;
-                            default:
-                                temp.setType(RankType.RECRUIT);
-                                break;
-                        }
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.GRAY + "You have demoted " + ChatColor.BLUE + off.getName() + ChatColor.GRAY +
-                                        " to " + ChatColor.BLUE + temp.getType().getName() + ChatColor.GRAY + "."));
-                        for (Player players : Bukkit.getOnlinePlayers()) {
-                            if (guild.getMembers().contains(players.getUniqueId())) {
-                                if (players.getUniqueId().toString().equals(off.getUniqueId().toString())) {
-                                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                            ChatColor.GRAY + "You have been demoted to " + ChatColor.BLUE +
-                                                    temp.getType().getName() + ChatColor.GRAY + "."));
-                                }
-                                if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
-                                    players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                            ChatColor.BLUE + player.getName() + ChatColor.GRAY + " has demoted " +
-                                                    ChatColor.BLUE + off.getName() + ChatColor.GRAY + " to " +
-                                                    ChatColor.BLUE + temp.getType().getName() + ChatColor.GRAY + "."));
-                                }
-                            }
-                        }
-                    } else {
-                        switch (temp.getType()) {
-                            case RECRUIT:
-                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                        ChatColor.RED + "This player already has the lowest guild rank!"));
-                                return true;
-                            case MEMBER:
-                                temp.setType(RankType.RECRUIT);
-                                break;
-                            case OFFICER:
-                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                        ChatColor.RED + "You can not demote other officers of the guild!"));
-                                return true;
-                            case LEADER:
-                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                        ChatColor.RED + "You can not demote the leader of the guild!"));
-                                return true;
-                            default:
-                                temp.setType(RankType.RECRUIT);
-                                break;
-                        }
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.GRAY + "You have demoted " + ChatColor.BLUE + off.getName() + ChatColor.GRAY +
-                                        " to " + ChatColor.BLUE + temp.getType().getName() + ChatColor.GRAY + "."));
-                        for (Player players : Bukkit.getOnlinePlayers()) {
-                            if (guild.getMembers().contains(players.getUniqueId())) {
-                                if (players.getUniqueId().toString().equals(off.getUniqueId().toString())) {
-                                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                            ChatColor.GRAY + "You have been demoted to " + ChatColor.BLUE +
-                                                    temp.getType().getName() + ChatColor.GRAY + "."));
-                                }
-                                if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
-                                    players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                            ChatColor.BLUE + player.getName() + ChatColor.GRAY + " has demoted " +
-                                                    ChatColor.BLUE + off.getName() + ChatColor.GRAY + " to " +
-                                                    ChatColor.BLUE + temp.getType().getName() + ChatColor.GRAY + "."));
-                                }
-                            }
-                        }
-                    }
-                }
-            } else if (args.length == 3) {
-                //NAME, RANK, DESC
-                switch (args[0].toLowerCase()) {
-                    case "name": {
-                        if (!player.hasPermission("ne.admin")) {
-                            player.sendMessage(Lang.NO_PERM.getServerMessage());
-                            return true;
-                        }
-
-                        Optional<GuildModel> opGuildd = Optional.empty();
-                        if (NEGuilds.getGuildRegistry().guildExists(args[2])) {
-                            opGuildd = NEGuilds.getGuildRegistry().getGuild(args[2]);
-                        } else {
-                            if (NEGuilds.getUserManager().userExists(Bukkit.getOfflinePlayer(args[2]).getUniqueId())) {
-                                opGuildd = NEGuilds.getUserManager()
-                                        .getTempUser(Bukkit.getOfflinePlayer(args[2]).getUniqueId()).getGuild();
-                            }
-                        }
-
-                        if (!opGuildd.isPresent()) {
                             player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                    ChatColor.RED + "That guild does not exist or that player is not in a guild!"));
-                            return true;
+                                    ChatColor.GRAY + "You have unclaimed territory at " + ChatColor.DARK_GRAY + "[" +
+                                            ChatColor.GOLD + chunk.getX()
+                                            + ChatColor.DARK_GRAY + ", " + ChatColor.GOLD + chunk.getZ() +
+                                            ChatColor.DARK_GRAY +
+                                            "}" + ChatColor.GRAY + "."));
+                            break;
                         }
+                        case "color":
+                            if (!inGuild) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(
+                                                        ChatColor.RED + "You're not currently in any guild!"));
+                                return true;
+                            }
 
-                        GuildModel guildd = opGuildd.get();
+                            if (rank != RankType.LEADER && rank != RankType.OFFICER) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
+                                return true;
+                            }
 
-                        String oldName = guildd.getName();
-                        String name = args[1];
-                        if (name.length() > 15) {
                             player.sendMessage(
-                                    Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "That name is too long!"));
-                            return true;
-                        }
+                                    Lang.CHAT_TAG
+                                            .getServerMessage(ChatColor.GRAY + "You have opened Guild Color Shop."));
+                            player.openInventory(NEGuilds.getInventoryListener().inventoryGuildColor(player));
+                            break;
+                        case "admin":
+                            if (!player.hasPermission("ne.admin")) {
+                                player.sendMessage(Lang.NO_PERM.getServerMessage());
+                                return true;
+                            }
 
-                        if (NEGuilds.getGuildRegistry().guildExists(name)) {
-                            player.sendMessage(Lang.CHAT_TAG
-                                    .getServerMessage(ChatColor.RED + "A guild with that name already exists!"));
-                            return true;
-                        }
+                            if (!NEGuilds.getGuildTempData().adminBypass.contains(player.getUniqueId())) {
+                                NEGuilds.getGuildTempData().adminBypass.add(player.getUniqueId());
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.GRAY + "You have " + ChatColor.GREEN + "" + ChatColor.UNDERLINE +
+                                                "enabled" +
+                                                ChatColor.GRAY + " Admin bypass."));
+                                return true;
+                            } else {
+                                NEGuilds.getGuildTempData().adminBypass.remove(player.getUniqueId());
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.GRAY + "You have " + ChatColor.RED + "" + ChatColor.UNDERLINE +
+                                                "disabled" +
+                                                ChatColor.GRAY + " Admin bypass."));
+                                return true;
+                            }
+                        case "list":
+                            sendPage(player, 1);
+                            break;
+                        case "disband": {
+                            if (!inGuild) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(
+                                                        ChatColor.RED + "You're not currently in any guild!"));
+                                return true;
+                            }
 
-                        guildd.setName(name);
-                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                ChatColor.GRAY + "You have set the name of the guild " + guildd.getColor() +
-                                        oldName + ChatColor.GRAY +
-                                        " to " + guildd.getColor() + guildd.getName() + ChatColor.GRAY + "."));
-                        for (Player players : Bukkit.getOnlinePlayers()) {
-                            if (guildd.getMembers().contains(players.getUniqueId())) {
-                                if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
-                                    players.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                            ChatColor.BLUE + player.getName() + ChatColor.GRAY +
-                                                    " has set the name of the guild to " + guildd.getColor() +
-                                                    guildd.getName() + ChatColor.GRAY + "."));
+                            if (rank != RankType.LEADER) {
+                                player.sendMessage(Lang.CHAT_TAG
+                                        .getServerMessage(
+                                                ChatColor.RED + "You must be the leader of the guild to do this!"));
+                                return true;
+                            }
+
+                            GuildModel guild = opGuild.get();
+
+                            for (UUID uuid : guild.getMembers()) {
+                                User temp = NEGuilds.getUserManager().getTempUser(uuid);
+                                temp.setType(null);
+                                temp.removeGuild();
+                            }
+
+                            for (Player players : Bukkit.getOnlinePlayers()) {
+                                if (guild.getMembers().contains(players.getUniqueId())) {
+                                    if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
+                                        players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                        " has disbanded the guild you were in!"));
+                                    }
                                 }
                             }
+                            user.setType(null);
+                            user.removeGuild();
+                            player.sendMessage(
+                                    Lang.CHAT_TAG
+                                            .getServerMessage(ChatColor.GRAY + "You disbanded the guild you were in!"));
+                            NEGuilds.getGuildRegistry().deleteGuild(guild.getUUID());
+                            break;
                         }
-                        break;
-                    }
-                    case "rank": {
-                        if (!inGuild || !opGuild.isPresent()) {
-                            player.sendMessage(Lang.CHAT_TAG
-                                    .getServerMessage(ChatColor.RED + "You're not currently in any guild!"));
-                            return true;
-                        }
+                        case "desc":
+                        case "description": {
+                            if (!inGuild) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(
+                                                        ChatColor.RED + "You're not currently in any guild!"));
+                                return true;
+                            }
 
-                        if (rank != RankType.LEADER && rank != RankType.OFFICER) {
-                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                    ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
-                            return true;
-                        }
-                        String name = args[1];
+                            GuildModel guild = opGuild.get();
 
-                        RankType type;
-                        type = RankType.valueOf(args[2].toUpperCase());
-
-                        if (type == RankType.LEADER) {
-                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                    ChatColor.RED + "To transfer leadership of the guild do /g leader [player]."));
-                            return true;
-                        }
-
-                        if (user.getType() == RankType.LEADER) {
-                            if (opGuild.get().getMembers().contains(Bukkit.getOfflinePlayer(name).getUniqueId())) {
-                                User temp = NEGuilds.getUserManager()
-                                        .getTempUser(Bukkit.getOfflinePlayer(name).getUniqueId());
-                                if (temp == user) {
-                                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED +
-                                            "You can not change your guild rank unless you transfer leadership of the" +
-                                            " guild!"));
-                                    return true;
-                                }
-
-                                if (temp.getType() == RankType.LEADER) {
-                                    player.sendMessage(Lang.CHAT_TAG
-                                            .getServerMessage(ChatColor.RED + "That player is already the leader!"));
-                                    return true;
-                                }
-                                temp.setType(type);
-                                if (Bukkit.getOnlinePlayers().contains(Bukkit.getPlayer(name))) {
-                                    Bukkit.getPlayer(name).sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                            ChatColor.GRAY + "Your guild rank has been set to " + ChatColor.BLUE +
-                                                    type.getName() + ChatColor.GRAY + "."));
-                                }
+                            if ("".equals(guild.getDescription()) || guild.getDescription() == null) {
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                        ChatColor.GRAY + "You have set " + ChatColor.BLUE +
-                                                Bukkit.getOfflinePlayer(name).getName() + "'s " + ChatColor.GRAY +
-                                                " guild rank to "
-                                                + ChatColor.BLUE + type.getName() + ChatColor.GRAY + "."));
-                                for (UUID uuid : opGuild.get().getMembers()) {
-                                    if (Bukkit.getOnlinePlayers().contains(Bukkit.getPlayer(uuid))) {
-                                        if (!uuid.toString().equals(player.getUniqueId().toString()) && !uuid.toString()
-                                                .equals(Bukkit.getOfflinePlayer(name).getUniqueId().toString())) {
-                                            Bukkit.getPlayer(uuid).sendMessage(Lang.CHAT_TAG.getServerMessage(
-                                                    ChatColor.BLUE + player.getName() + ChatColor.GRAY + " has set " +
-                                                            ChatColor.BLUE
-                                                            + Bukkit.getOfflinePlayer(name).getName() + "'s " +
-                                                            ChatColor.GRAY + " guild rank to " + ChatColor.BLUE +
-                                                            type.getName() + ChatColor.GRAY + "."));
+                                        ChatColor.RED + "Your guild does not currently have a description set"));
+                                return true;
+                            }
+
+                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                    ChatColor.GRAY + "The description of your guild is: " + guild.getDescription() +
+                                            "."));
+                            break;
+                        }
+                        case "map":
+                            GuildMapUtil.sendGuildMap(player);
+                            break;
+                        case "seechunks":
+                        case "sc":
+                            if (!ChunkBoundaryUtil.showingBoundaries.contains(player.getUniqueId())) {
+                                player.sendMessage(Lang.CHAT_TAG
+                                        .getServerMessage(ChatColor.GRAY + "Now showing chunk boundaries around you."));
+                                ChunkBoundaryUtil.startChunkBoundaries(player);
+                            } else {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(
+                                                        ChatColor.GRAY + "No longer showing chunk boundaries."));
+                                ChunkBoundaryUtil.stopChunkBoundaries(player);
+                            }
+                            break;
+                        default:
+                            player.sendMessage(Lang.SYNTAX_ERROR.getServerMessage());
+                            return true;
+                    }
+                    break;
+                case 2:
+                    //CREATE, HELP, JOIN, INVITE, SHOW, KICK, NAME, DISBAND, HOME, ALLY, TRUCE, NEUTRAL, ENEMY, UNCLAIM,
+                    // DESC, LEADER, PROMOTE, DEMOTE
+                    switch (args[0].toLowerCase()) {
+                        case "create": {
+                            if (inGuild) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED +
+                                                "You must leave your current guild first in order to do this!"));
+                                return true;
+                            }
+
+                            String name = args[1];
+                            if (name.length() > 15) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "That name is too long!"));
+                                return true;
+                            }
+
+                            if (!player.hasPermission("ne.admin") &&
+                                    NEGuilds.getGuildRegistry().containsBannedWord(name)) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(ChatColor.RED + "That name contains a banned word!"));
+                                return true;
+                            }
+
+                            if (NEGuilds.getGuildRegistry().guildExists(name)) {
+                                player.sendMessage(Lang.CHAT_TAG
+                                        .getServerMessage(ChatColor.RED + "A guild with that name already exists!"));
+                                return true;
+                            }
+
+                            UUID uuid = NEGuilds.getGuildRegistry().createGuild(name, player.getUniqueId());
+                            GuildModel guild = NEGuilds.getGuildRegistry().getGuild(uuid).get();
+                            user.setGuild(uuid);
+                            user.setType(RankType.LEADER);
+                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                    ChatColor.GRAY + "You have created a guild by the name of " + guild.getColor() +
+                                            guild.getName() + ChatColor.GRAY + "."));
+                            for (Player players : Bukkit.getOnlinePlayers()) {
+                                players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                " has created a guild by the name of "
+                                                + guild.getColor() + guild.getName() + ChatColor.GRAY +
+                                                "."));
+                            }
+                            break;
+                        }
+                        case "help":
+                            String preInt = args[1];
+                            if (!NumberUtils.isDigits(preInt)) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "That is not a valid number!"));
+                                return true;
+                            }
+
+                            int page = Integer.parseInt(preInt);
+                            if (page < 1) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(
+                                                        ChatColor.RED + "The page number must be at most 1-3!"));
+                                return true;
+                            } else if (page > 3) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(
+                                                        ChatColor.RED + "The page number must be at most 1-3!"));
+                                return true;
+                            }
+
+                            switch (page) {
+                                case 1:
+                                    if (player.hasPermission("ne.admin")) {
+                                        player.sendMessage(adminHelp1);
+                                        return true;
+                                    }
+                                    player.sendMessage(help1);
+                                    break;
+                                case 2:
+                                    if (player.hasPermission("ne.admin")) {
+                                        player.sendMessage(adminHelp2);
+                                        return true;
+                                    }
+                                    player.sendMessage(help2);
+                                    break;
+                                case 3:
+                                    if (player.hasPermission("ne.admin")) {
+                                        player.sendMessage(adminHelp3);
+                                        return true;
+                                    }
+                                    player.sendMessage(help3);
+                                    break;
+                            }
+                            break;
+                        case "join": {
+                            if (inGuild) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED +
+                                                "You must leave your current guild first in order to do this!"));
+                                return true;
+                            }
+                            String name = args[1];
+                            if (!NEGuilds.getGuildRegistry().guildExists(name)) {
+                                player.sendMessage(Lang.CHAT_TAG
+                                        .getServerMessage(ChatColor.RED + "A guild with that name does not exists!"));
+                                return true;
+                            }
+
+                            Optional<GuildModel> opGuildd = NEGuilds.getGuildRegistry().getGuild(name);
+                            if (!opGuildd.isPresent()) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "That guild does not exist!"));
+                                return true;
+                            }
+
+                            GuildModel guildd = opGuildd.get();
+
+                            if (!guildd.getInvites().contains(player.getUniqueId())) {
+                                if (!player.hasPermission("ne.admin")) {
+                                    player.sendMessage(Lang.CHAT_TAG
+                                            .getServerMessage(ChatColor.RED + "You're not invited to that guild!"));
+                                    for (Player players : Bukkit.getOnlinePlayers()) {
+                                        if (guildd.getMembers().contains(players.getUniqueId())) {
+                                            players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                    ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                            " tried to join the guild."));
+                                        }
+                                    }
+                                }
+                            }
+
+                            for (Player players : Bukkit.getOnlinePlayers()) {
+                                if (guildd.getMembers().contains(players.getUniqueId())) {
+                                    players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                            ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                    " has joined the guild."));
+                                }
+                            }
+                            guildd.addMember(player.getUniqueId());
+                            user.setGuild(guildd);
+                            user.setType(RankType.RECRUIT);
+                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                    ChatColor.GRAY + "You have joined " + guildd.getColor() + guildd.getName() +
+                                            ChatColor.GRAY + "."));
+                            if (guildd.getInvites().contains(player.getUniqueId())) {
+                                guildd.removeInvite(player.getUniqueId());
+                            }
+                            break;
+                        }
+                        case "invite":
+                        case "inv": {
+                            if (!inGuild) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(
+                                                        ChatColor.RED + "You're not currently in any guild!"));
+                                return true;
+                            }
+
+                            if (rank != RankType.OFFICER && rank != RankType.LEADER) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
+                                return true;
+                            }
+
+                            OfflinePlayer invitee = Bukkit.getOfflinePlayer(args[1]);
+                            GuildModel guild = opGuild.get();
+
+                            if (guild.getMembers().contains(invitee.getUniqueId())) {
+                                player.sendMessage(Lang.CHAT_TAG
+                                        .getServerMessage(ChatColor.RED + "That player is already in your guild!"));
+                                return true;
+                            }
+
+                            if (!guild.getInvites().contains(invitee.getUniqueId())) {
+                                guild.addInvite(invitee.getUniqueId());
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.GRAY + "You have invited " + ChatColor.BLUE + invitee.getName() +
+                                                ChatColor.GRAY + " to the guild!"));
+                                for (Player players : Bukkit.getOnlinePlayers()) {
+                                    if (guild.getMembers().contains(players.getUniqueId())) {
+                                        if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
+                                            players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                    ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                            " has invited " +
+                                                            ChatColor.BLUE + invitee.getName()
+                                                            + ChatColor.GRAY + " to the guild!"));
+                                        }
+                                    } else {
+                                        if (invitee.getUniqueId().toString().equals(players.getUniqueId().toString())) {
+                                            players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                    ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                            " has invited you to " + guild.getColor() +
+                                                            guild.getName() +
+                                                            ChatColor.GRAY + "."));
                                         }
                                     }
                                 }
                             } else {
-                                player.sendMessage(Lang.CHAT_TAG
-                                        .getServerMessage(ChatColor.RED + "That player is not in the guild!"));
+                                guild.removeInvite(invitee.getUniqueId());
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.GRAY + "You have revoked " + ChatColor.BLUE + invitee.getName() +
+                                                "'s " +
+                                                ChatColor.GRAY + "invitation to the guild!"));
+                                for (Player players : Bukkit.getOnlinePlayers()) {
+                                    if (guild.getMembers().contains(players.getUniqueId())) {
+                                        if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
+                                            players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                    ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                            " has revoked " +
+                                                            ChatColor.BLUE + invitee + "'s "
+                                                            + ChatColor.GRAY + "invitation to the guild!"));
+                                        }
+                                    } else {
+                                        if (invitee.getUniqueId().toString().equals(players.getUniqueId().toString())) {
+                                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                    ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                            " has revoked your invitation to " + guild.getColor() +
+                                                            guild.getName() + ChatColor.GRAY + "."));
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                        case "show":
+                        case "info": {
+                            Optional<GuildModel> opGuildd = Optional.empty();
+                            if (NEGuilds.getGuildRegistry().guildExists(args[1])) {
+                                opGuildd = NEGuilds.getGuildRegistry().getGuild(args[1]);
+                            } else {
+                                if (NEGuilds.getUserManager()
+                                        .userExists(Bukkit.getOfflinePlayer(args[1]).getUniqueId())) {
+                                    opGuildd = NEGuilds.getUserManager()
+                                            .getTempUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
+                                }
+                            }
+
+                            if (!opGuildd.isPresent()) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED + "That guild does not exist or that player is not in a guild!"));
                                 return true;
                             }
+
+                            sendGuildInfo(player, opGuildd.get());
+                            break;
                         }
-                        break;
+                        case "kick": {
+                            if (!inGuild) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(
+                                                        ChatColor.RED + "You're not currently in any guild!"));
+                                return true;
+                            }
+
+                            if (user.getType() != RankType.LEADER && user.getType() != RankType.OFFICER) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
+                                return true;
+                            }
+
+                            GuildModel guild = opGuild.get();
+
+                            String name = args[1];
+                            OfflinePlayer kickee = Bukkit.getOfflinePlayer(name);
+                            User temp = NEGuilds.getUserManager().getTempUser(kickee.getUniqueId());
+                            if (kickee.getUniqueId().toString().equals(player.getUniqueId().toString())) {
+                                player.sendMessage(Lang.CHAT_TAG
+                                        .getServerMessage(ChatColor.RED + "You can not kick yourself from the guild!"));
+                                return true;
+                            }
+                            if (!guild.getMembers().contains(kickee.getUniqueId())) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(ChatColor.RED + "That player is not in your guild!"));
+                                return true;
+                            }
+
+                            if (rank == RankType.OFFICER && temp.getType() == RankType.OFFICER) {
+                                player.sendMessage(Lang.CHAT_TAG
+                                        .getServerMessage(
+                                                ChatColor.RED + "You can not kick other officers from the guild!"));
+                                return true;
+                            }
+
+                            if (rank == RankType.OFFICER && temp.getType() == RankType.LEADER) {
+                                player.sendMessage(Lang.CHAT_TAG
+                                        .getServerMessage(
+                                                ChatColor.RED + "You can not kick the leader from the guild!"));
+                                return true;
+                            }
+
+                            guild.removeMember(kickee.getUniqueId());
+                            temp.removeGuild();
+                            temp.setType(null);
+                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                    ChatColor.GRAY + "You have kicked " + ChatColor.BLUE + kickee.getName() +
+                                            ChatColor.GRAY +
+                                            " from the guild!"));
+                            for (Player players : Bukkit.getOnlinePlayers()) {
+                                if (guild.getMembers().contains(players.getUniqueId())) {
+                                    if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
+                                        players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                ChatColor.BLUE + player.getName() + ChatColor.GRAY + " has kicked " +
+                                                        ChatColor.BLUE + kickee.getName() + ChatColor.GRAY +
+                                                        " from the guild!"));
+                                    }
+                                } else if (players.getUniqueId().toString().equals(kickee.getUniqueId().toString())) {
+                                    players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                            ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                    " has kicked you from the guild!"));
+                                }
+                            }
+                            break;
+                        }
+                        case "name": {
+                            if (!inGuild) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(
+                                                        ChatColor.RED + "You're not currently in any guild!"));
+                                return true;
+                            }
+
+                            if (rank != RankType.LEADER) {
+                                player.sendMessage(Lang.CHAT_TAG
+                                        .getServerMessage(
+                                                ChatColor.RED + "You must be the leader of the guild to do this!"));
+                                return true;
+                            }
+
+                            String name = args[1];
+                            if (name.length() > 15) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "That name is too long!"));
+                                return true;
+                            }
+
+                            if (!player.hasPermission("ne.admin") &&
+                                    NEGuilds.getGuildRegistry().containsBannedWord(name)) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(ChatColor.RED + "That name contains a banned word!"));
+                                return true;
+                            }
+
+                            if (NEGuilds.getGuildRegistry().guildExists(name)) {
+                                player.sendMessage(Lang.CHAT_TAG
+                                        .getServerMessage(ChatColor.RED + "A guild with that name already exists!"));
+                                return true;
+                            }
+
+                            GuildModel guild = opGuild.get();
+
+                            guild.setName(name);
+                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                    ChatColor.GRAY + "You have set the name of the guild to " + guild.getColor() +
+                                            guild.getName() + ChatColor.GRAY + "."));
+                            for (Player players : Bukkit.getOnlinePlayers()) {
+                                if (guild.getMembers().contains(players.getUniqueId())) {
+                                    if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
+                                        players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                        " has set the name of the guild to " + guild.getColor() +
+                                                        guild.getName() + ChatColor.GRAY + "."));
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                        case "disband": {
+                            if (!player.hasPermission("ne.admin")) {
+                                player.sendMessage(Lang.NO_PERM.getServerMessage());
+                                return true;
+                            }
+
+                            Optional<GuildModel> opGuildd = Optional.empty();
+                            if (NEGuilds.getGuildRegistry().guildExists(args[1])) {
+                                opGuildd = NEGuilds.getGuildRegistry().getGuild(args[1]);
+                            } else {
+                                if (NEGuilds.getUserManager()
+                                        .userExists(Bukkit.getOfflinePlayer(args[1]).getUniqueId())) {
+                                    opGuildd = NEGuilds.getUserManager()
+                                            .getTempUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
+                                }
+                            }
+
+                            if (!opGuildd.isPresent()) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED + "That guild does not exist or that player is not in a guild!"));
+                                return true;
+                            }
+
+                            GuildModel guildd = opGuildd.get();
+
+                            for (UUID uuid : guildd.getMembers()) {
+                                User temp = NEGuilds.getUserManager().getTempUser(uuid);
+                                temp.setType(null);
+                                temp.removeGuild();
+                            }
+
+                            for (Player players : Bukkit.getOnlinePlayers()) {
+                                if (guildd.getMembers().contains(players.getUniqueId())) {
+                                    if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
+                                        players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                        " has disbanded the guild you were in!"));
+                                    }
+                                }
+                            }
+
+                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                    ChatColor.GRAY + "You have disbanded guild " + guildd.getColor() +
+                                            guildd.getName() +
+                                            ChatColor.GRAY + "."));
+                            NEGuilds.getGuildRegistry().deleteGuild(guildd.getUUID());
+                            break;
+                        }
+                        case "home": {
+                            if (!player.hasPermission("ne.admin")) {
+                                player.sendMessage(Lang.NO_PERM.getServerMessage());
+                                return true;
+                            }
+
+                            Optional<GuildModel> opGuildd = Optional.empty();
+                            if (NEGuilds.getGuildRegistry().guildExists(args[1])) {
+                                opGuildd = NEGuilds.getGuildRegistry().getGuild(args[1]);
+                            } else {
+                                if (NEGuilds.getUserManager()
+                                        .userExists(Bukkit.getOfflinePlayer(args[1]).getUniqueId())) {
+                                    opGuildd = NEGuilds.getUserManager()
+                                            .getTempUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
+                                }
+                            }
+
+                            if (!opGuildd.isPresent()) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED + "That guild does not exist or that player is not in a guild!"));
+                                return true;
+                            }
+
+                            GuildModel guildd = opGuildd.get();
+
+                            if (guildd.getHome() == null) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(
+                                                        ChatColor.RED + "That guild does not have a home set!"));
+                                return true;
+                            }
+                            player.teleport(guildd.getHome());
+                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                    ChatColor.GRAY + "You have teleported to " + guildd.getColor() + guildd.getName() +
+                                            ChatColor.GRAY + " guild home."));
+                            break;
+                        }
+                        case "ally": {
+                            if (!inGuild) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(
+                                                        ChatColor.RED + "You're not currently in any guild!"));
+                                return true;
+                            }
+
+                            GuildModel guild = opGuild.get();
+
+                            if (rank != RankType.LEADER && rank != RankType.OFFICER) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
+                                return true;
+                            }
+
+                            Optional<GuildModel> opGuildd = Optional.empty();
+                            if (NEGuilds.getGuildRegistry().guildExists(args[1])) {
+                                opGuildd = NEGuilds.getGuildRegistry().getGuild(args[1]);
+                            } else {
+                                if (NEGuilds.getUserManager()
+                                        .userExists(Bukkit.getOfflinePlayer(args[1]).getUniqueId())) {
+                                    opGuildd = NEGuilds.getUserManager()
+                                            .getTempUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
+                                }
+                            }
+
+                            if (!opGuildd.isPresent()) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED + "That guild does not exist or that player is not in a guild!"));
+                                return true;
+                            }
+
+                            GuildModel guildd = opGuildd.get();
+
+                            if (guild.getUUID().equals(guildd.getUUID())) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED + "You can not send a relation wish to your own guild!"));
+                                return true;
+                            }
+
+                            if (guildd.getRelations().containsKey(guild.getUUID()) &&
+                                    guildd.getRelations().get(guild.getUUID()) == RelationType.ALLY) {
+                                if (guild.isAlly(guildd)) {
+                                    player.sendMessage(Lang.CHAT_TAG
+                                            .getServerMessage(
+                                                    ChatColor.RED + "You're already allied with that guild!"));
+                                    return true;
+                                } else if (guild.getRelations().containsKey(guildd.getUUID()) &&
+                                        guild.getRelations().get(guildd.getUUID()) == RelationType.ALLY) {
+                                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                            ChatColor.RED +
+                                                    "You already have that relation wish set with that guild!"));
+                                    return true;
+                                }
+
+                                guild.addRelation(guildd.getUUID(), RelationType.ALLY);
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.GRAY + "You have accepted " + guildd.getColor() + guildd.getName() +
+                                                "'s " +
+                                                ChatColor.GRAY + "wish to be allies."));
+                                for (Player players : Bukkit.getOnlinePlayers()) {
+                                    if (guild.getMembers().contains(players.getUniqueId())) {
+                                        if (!players.getUniqueId().equals(player.getUniqueId())) {
+                                            players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                    ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                            " has accepted " +
+                                                            guildd.getColor() + guildd.getName() + "'s " +
+                                                            ChatColor.GRAY +
+                                                            "wish to be allies."));
+                                        }
+                                    } else if (guildd.getMembers().contains(players.getUniqueId())) {
+                                        players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                guild.getColor() + guild.getName() + ChatColor.GRAY +
+                                                        " has accepted your wish to be allies"));
+                                    }
+                                }
+                            } else {
+                                if (guild.isAlly(guildd)) {
+                                    player.sendMessage(Lang.CHAT_TAG
+                                            .getServerMessage(
+                                                    ChatColor.RED + "You're already allied with that guild!"));
+                                    return true;
+                                } else if (guild.getRelations().containsKey(guildd.getUUID()) &&
+                                        guild.getRelations().get(guildd.getUUID()) == RelationType.ALLY) {
+                                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                            ChatColor.RED +
+                                                    "You already have that relation wish set with that guild!"));
+                                    return true;
+                                }
+
+                                guild.addRelation(guildd.getUUID(), RelationType.ALLY);
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.GRAY + "You have requested to be allies with  " + guildd.getColor() +
+                                                guildd.getName() + ChatColor.GRAY + "."));
+                                for (Player players : Bukkit.getOnlinePlayers()) {
+                                    if (guild.getMembers().contains(players.getUniqueId())) {
+                                        if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
+                                            players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                    ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                            " has requested to be allies with  " + guildd.getColor() +
+                                                            guildd.getName() + ChatColor.GRAY + "."));
+                                        }
+                                    } else if (guildd.getMembers().contains(players.getUniqueId())) {
+                                        players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                guild.getColor() + guild.getName() + ChatColor.GRAY +
+                                                        " has requested to be allies"));
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                        case "truce": {
+                            if (!inGuild) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(
+                                                        ChatColor.RED + "You're not currently in any guild!"));
+                                return true;
+                            }
+
+                            if (rank != RankType.LEADER && rank != RankType.OFFICER) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
+                                return true;
+                            }
+
+                            GuildModel guild = opGuild.get();
+
+                            Optional<GuildModel> opGuildd = Optional.empty();
+                            if (NEGuilds.getGuildRegistry().guildExists(args[1])) {
+                                opGuildd = NEGuilds.getGuildRegistry().getGuild(args[1]);
+                            } else {
+                                if (NEGuilds.getUserManager()
+                                        .userExists(Bukkit.getOfflinePlayer(args[1]).getUniqueId())) {
+                                    opGuildd = NEGuilds.getUserManager()
+                                            .getTempUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
+                                }
+                            }
+
+                            if (!opGuildd.isPresent()) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED + "That guild does not exist or that player is not in a guild!"));
+                                return true;
+                            }
+
+                            GuildModel guildd = opGuildd.get();
+
+                            if (guild.getUUID().equals(guildd.getUUID())) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED + "You can not send a relation wish to your own guild!"));
+                                return true;
+                            }
+
+                            if (guildd.getRelations().containsKey(guild.getUUID()) &&
+                                    guildd.getRelations().get(guild.getUUID()) == RelationType.TRUCE) {
+                                if (guild.isTruce(guildd)) {
+                                    player.sendMessage(Lang.CHAT_TAG
+                                            .getServerMessage(
+                                                    ChatColor.RED + "You're already truced with that guild!"));
+                                    return true;
+                                } else if (guild.getRelations().containsKey(guildd.getUUID()) &&
+                                        guild.getRelations().get(guildd.getUUID()) == RelationType.TRUCE) {
+                                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                            ChatColor.RED +
+                                                    "You already have that relation wish set with that guild!"));
+                                    return true;
+                                }
+
+                                guild.addRelation(guildd.getUUID(), RelationType.TRUCE);
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.GRAY + "You have accepted " + guildd.getColor() + guildd.getName() +
+                                                "'s " +
+                                                ChatColor.GRAY + "wish to be truced."));
+                                for (Player players : Bukkit.getOnlinePlayers()) {
+                                    if (guild.getMembers().contains(players.getUniqueId())) {
+                                        if (!players.getUniqueId().equals(player.getUniqueId())) {
+                                            players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                    ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                            " has accepted " +
+                                                            guildd.getColor() + guildd.getName() + "'s " +
+                                                            ChatColor.GRAY +
+                                                            "wish to be truced."));
+                                        }
+                                    } else if (guildd.getMembers().contains(players.getUniqueId())) {
+                                        players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                guild.getColor() + guild.getName() + ChatColor.GRAY +
+                                                        " has accepted your wish to be truced"));
+                                    }
+                                }
+                            } else {
+                                if (guild.isTruce(guildd)) {
+                                    player.sendMessage(Lang.CHAT_TAG
+                                            .getServerMessage(
+                                                    ChatColor.RED + "You're already allied with that guild!"));
+                                    return true;
+                                } else if (guild.getRelations().containsKey(guildd.getUUID()) &&
+                                        guild.getRelations().get(guildd.getUUID()) == RelationType.TRUCE) {
+                                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                            ChatColor.RED +
+                                                    "You already have that relation wish set with that guild!"));
+                                    return true;
+                                }
+
+                                guild.addRelation(guildd.getUUID(), RelationType.TRUCE);
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.GRAY + "You have requested to be truced with  " + guildd.getColor() +
+                                                guildd.getName() + ChatColor.GRAY + "."));
+                                for (Player players : Bukkit.getOnlinePlayers()) {
+                                    if (guild.getMembers().contains(players.getUniqueId())) {
+                                        if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
+                                            players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                    ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                            " has requested to be truced with  " + guildd.getColor() +
+                                                            guildd.getName() + ChatColor.GRAY + "."));
+                                        }
+                                    } else if (guildd.getMembers().contains(players.getUniqueId())) {
+                                        players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                guild.getColor() + guild.getName() + ChatColor.GRAY +
+                                                        " has requested to be truced"));
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                        case "neutral": {
+                            if (!inGuild) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(
+                                                        ChatColor.RED + "You're not currently in any guild!"));
+                                return true;
+                            }
+
+                            if (rank != RankType.LEADER && rank != RankType.OFFICER) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
+                                return true;
+                            }
+
+                            GuildModel guild = opGuild.get();
+
+                            Optional<GuildModel> opGuildd = Optional.empty();
+                            if (NEGuilds.getGuildRegistry().guildExists(args[1])) {
+                                opGuildd = NEGuilds.getGuildRegistry().getGuild(args[1]);
+                            } else {
+                                if (NEGuilds.getUserManager()
+                                        .userExists(Bukkit.getOfflinePlayer(args[1]).getUniqueId())) {
+                                    opGuildd = NEGuilds.getUserManager()
+                                            .getTempUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
+                                }
+                            }
+
+                            if (!opGuildd.isPresent()) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED + "That guild does not exist or that player is not in a guild!"));
+                                return true;
+                            }
+
+                            GuildModel guildd = opGuildd.get();
+
+                            if (guild.getUUID().equals(guildd.getUUID())) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED + "You can not send a relation wish to your own guild!"));
+                                return true;
+                            }
+
+                            if (guildd.getRelations().containsKey(guild.getUUID()) &&
+                                    guildd.getRelations().get(guild.getUUID()) == RelationType.NEUTRAL) {
+                                if (guild.isNeutral(guildd)) {
+                                    player.sendMessage(Lang.CHAT_TAG
+                                            .getServerMessage(
+                                                    ChatColor.RED + "You're already neutral with that guild!"));
+                                    return true;
+                                } else if (guild.getRelations().containsKey(guildd.getUUID()) &&
+                                        guild.getRelations().get(guildd.getUUID()) == RelationType.NEUTRAL) {
+                                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                            ChatColor.RED +
+                                                    "You already have that relation wish set with that guild!"));
+                                    return true;
+                                }
+
+                                guild.addRelation(guildd.getUUID(), RelationType.NEUTRAL);
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.GRAY + "You have accepted " + guildd.getColor() + guildd.getName() +
+                                                "'s " +
+                                                ChatColor.GRAY + "wish to be neutral."));
+                                for (Player players : Bukkit.getOnlinePlayers()) {
+                                    if (guild.getMembers().contains(players.getUniqueId())) {
+                                        if (!players.getUniqueId().equals(player.getUniqueId())) {
+                                            players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                    ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                            " has accepted " +
+                                                            guildd.getColor() + guildd.getName() + "'s " +
+                                                            ChatColor.GRAY +
+                                                            "wish to be neutral."));
+                                        }
+                                    } else if (guildd.getMembers().contains(players.getUniqueId())) {
+                                        players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                guild.getColor() + guild.getName() + ChatColor.GRAY +
+                                                        " has accepted your wish to be neutral."));
+                                    }
+                                }
+                            } else {
+                                if (guild.isNeutral(guildd)) {
+                                    player.sendMessage(Lang.CHAT_TAG
+                                            .getServerMessage(
+                                                    ChatColor.RED + "You're already neutral with that guild!"));
+                                    return true;
+                                } else if (guild.getRelations().containsKey(guildd.getUUID()) &&
+                                        guild.getRelations().get(guildd.getUUID()) == RelationType.NEUTRAL) {
+                                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                            ChatColor.RED +
+                                                    "You already have that relation wish set with that guild!"));
+                                    return true;
+                                }
+
+                                guild.addRelation(guildd.getUUID(), RelationType.NEUTRAL);
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.GRAY + "You have requested to be neutral with  " + guildd.getColor() +
+                                                guildd.getName() + ChatColor.GRAY + "."));
+                                for (Player players : Bukkit.getOnlinePlayers()) {
+                                    if (guild.getMembers().contains(players.getUniqueId())) {
+                                        if (!players.getUniqueId().equals(player.getUniqueId())) {
+                                            players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                    ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                            " has requested to be neutral with  " + guildd.getColor() +
+                                                            guildd.getName() + ChatColor.GRAY + "."));
+                                        }
+                                    } else if (guildd.getMembers().contains(players.getUniqueId())) {
+                                        players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                guild.getColor() + guild.getName() + ChatColor.GRAY +
+                                                        " has requested to be neutral."));
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                        case "enemy": {
+                            if (!inGuild) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(
+                                                        ChatColor.RED + "You're not currently in any guild!"));
+                                return true;
+                            }
+
+                            if (rank != RankType.LEADER && rank != RankType.OFFICER) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
+                                return true;
+                            }
+
+                            GuildModel guild = opGuild.get();
+
+                            Optional<GuildModel> opGuildd = Optional.empty();
+                            if (NEGuilds.getGuildRegistry().guildExists(args[1])) {
+                                opGuildd = NEGuilds.getGuildRegistry().getGuild(args[1]);
+                            } else {
+                                if (NEGuilds.getUserManager()
+                                        .userExists(Bukkit.getOfflinePlayer(args[1]).getUniqueId())) {
+                                    opGuildd = NEGuilds.getUserManager()
+                                            .getTempUser(Bukkit.getOfflinePlayer(args[1]).getUniqueId()).getGuild();
+                                }
+                            }
+
+                            if (!opGuildd.isPresent()) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED + "That guild does not exist or that player is not in a guild!"));
+                                return true;
+                            }
+
+                            GuildModel guildd = opGuildd.get();
+
+                            if (guild.getUUID().equals(guildd.getUUID())) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED + "You can not send a relation wish to your own guild!"));
+                                return true;
+                            }
+
+                            if (!guildd.getRelations().containsKey(guild.getUUID()) ||
+                                    guildd.getRelations().get(guild.getUUID()) != RelationType.ENEMY) {
+                                if (guild.getRelations().containsKey(guildd.getUUID()) &&
+                                        guild.getRelations().get(guildd.getUUID()) == RelationType.ENEMY) {
+                                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                            ChatColor.RED +
+                                                    "You already have that relation wish set with that guild!"));
+                                    return true;
+                                }
+
+                                guild.addRelation(guildd.getUUID(), RelationType.ENEMY);
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.GRAY + "You have enemied " + guildd.getColor() + guildd.getName() +
+                                                ChatColor.GRAY + "."));
+                                for (Player players : Bukkit.getOnlinePlayers()) {
+                                    if (guild.getMembers().contains(players.getUniqueId())) {
+                                        if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
+                                            players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                    ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                            " has enemied  " +
+                                                            guildd.getColor() + guildd.getName() + ChatColor.GRAY +
+                                                            "."));
+                                        }
+                                    } else if (guildd.getMembers().contains(players.getUniqueId())) {
+                                        players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                guild.getColor() + guild.getName() + ChatColor.GRAY +
+                                                        " has enemied you."));
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                        case "unclaim":
+                            if (args[1].toLowerCase().equals("all")) {
+                                if (!inGuild) {
+                                    player.sendMessage(Lang.CHAT_TAG
+                                            .getServerMessage(ChatColor.RED + "You're not currently in any guild!"));
+                                    return true;
+                                }
+
+                                if (rank != RankType.LEADER && rank != RankType.OFFICER) {
+                                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                            ChatColor.RED +
+                                                    "You must be an officer or leader of the guild to do this!"));
+                                    return true;
+                                }
+
+                                GuildModel guild = opGuild.get();
+
+                                for (String string : guild.getTerritory()) {
+                                    Chunk chunk = ChunkUtil.getChunk(string);
+                                    if (!chunk.isLoaded()) {
+                                        chunk.load();
+                                    }
+
+                                    if (guild.getHome() != null) {
+                                        if (guild.getHome().getChunk() == chunk) {
+                                            guild.setHome(null);
+                                            for (Player players : Bukkit.getOnlinePlayers()) {
+                                                if (guild.getMembers().contains(players.getUniqueId())) {
+                                                    if (!players.getUniqueId().toString()
+                                                            .equals(player.getUniqueId().toString())) {
+                                                        player.sendMessage(
+                                                                Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY +
+                                                                        "The home of the guild was removed due to the" +
+                                                                        " territory " +
+                                                                        "it " +
+                                                                        "was in was unclaimed!"));
+                                                    }
+                                                }
+                                            }
+                                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.GRAY +
+                                                    "The home of the guild was removed due to the territory it was in" +
+                                                    " was" +
+                                                    " " +
+                                                    "unclaimed!"));
+                                        }
+                                    }
+                                    guild.removeTerritory(chunk);
+                                }
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.GRAY + "You have unclaimed all of your guild's territory!"));
+                                for (Player players : Bukkit.getOnlinePlayers()) {
+                                    if (guild.getMembers().contains(players.getUniqueId())) {
+                                        if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
+                                            players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                    ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                            " has unclaimed all of your guild's territory!"));
+                                        }
+                                    }
+                                }
+                            } else {
+                                player.sendMessage(Lang.SYNTAX_ERROR.getServerMessage());
+                            }
+                            break;
+                        case "desc":
+                        case "description":
+                            if (!inGuild) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(
+                                                        ChatColor.RED + "You're not currently in any guild!"));
+                            }
+
+                            setDescription(player, opGuild.get(), args);
+                            break;
+                        case "leader": {
+                            if (!inGuild) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(
+                                                        ChatColor.RED + "You're not currently in any guild!"));
+                                return true;
+                            }
+
+                            if (user.getType() != RankType.LEADER) {
+                                player.sendMessage(Lang.CHAT_TAG
+                                        .getServerMessage(
+                                                ChatColor.RED + "You must be the leader of the guild to do this!"));
+                                return true;
+                            }
+
+                            GuildModel guild = opGuild.get();
+
+                            String name = args[1];
+                            OfflinePlayer leader = Bukkit.getOfflinePlayer(name);
+                            if (leader.getUniqueId().toString().equals(player.getUniqueId().toString())) {
+                                player.sendMessage(Lang.CHAT_TAG
+                                        .getServerMessage(ChatColor.RED + "You're already the leader of the guild!"));
+                                return true;
+                            }
+                            User temp = NEGuilds.getUserManager().getTempUser(leader.getUniqueId());
+                            if (!guild.getMembers().contains(leader.getUniqueId())) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(ChatColor.RED + "That player is not in your guild!"));
+                                return true;
+                            }
+
+                            temp.setType(RankType.LEADER);
+                            guild.setLeader(temp.getUUID());
+                            user.setType(RankType.OFFICER);
+                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                    ChatColor.GRAY + "You have made " + ChatColor.BLUE + leader.getName() +
+                                            ChatColor.GRAY +
+                                            " the leader of the guild!"));
+                            for (Player players : Bukkit.getOnlinePlayers()) {
+                                if (players.getUniqueId().toString().equals(leader.getUniqueId().toString())) {
+                                    players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                            ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                    " has made you the leader of the guild!"));
+                                }
+                                if (guild.getMembers().contains(players.getUniqueId())) {
+                                    if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
+                                        players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                ChatColor.BLUE + player.getName() + ChatColor.GRAY + " has made " +
+                                                        ChatColor.BLUE + leader.getName() + ChatColor.GRAY +
+                                                        " the leader of the guild!"));
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                        case "promote": {
+                            if (!inGuild) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(
+                                                        ChatColor.RED + "You're not currently in any guild!"));
+                                return true;
+                            }
+
+                            if (rank != RankType.LEADER && rank != RankType.OFFICER) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
+                                return true;
+                            }
+
+                            GuildModel guild = opGuild.get();
+
+                            String name = args[1];
+                            OfflinePlayer off = Bukkit.getOfflinePlayer(name);
+                            User temp = NEGuilds.getUserManager().getTempUser(off.getUniqueId());
+                            if (!guild.getMembers().contains(off.getUniqueId())) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(ChatColor.RED + "That player is not in your guild!"));
+                            }
+                            if (rank == RankType.LEADER) {
+                                switch (temp.getType()) {
+                                    case RECRUIT:
+                                        temp.setType(RankType.MEMBER);
+                                        break;
+                                    case MEMBER:
+                                        temp.setType(RankType.OFFICER);
+                                        break;
+                                    case OFFICER:
+                                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED +
+                                                "To make that player the leader of the guild do /guild leader " +
+                                                "[player]."));
+                                        return true;
+                                    case LEADER:
+                                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                ChatColor.RED + "That member is already the leader of the guild!"));
+                                        return true;
+                                    default:
+                                        temp.setType(RankType.RECRUIT);
+                                        break;
+                                }
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.GRAY + "You have promoted " + ChatColor.BLUE + off.getName() +
+                                                ChatColor.GRAY + " to " + ChatColor.BLUE + temp.getType().getName() +
+                                                ChatColor.GRAY + "."));
+                                for (Player players : Bukkit.getOnlinePlayers()) {
+                                    if (guild.getMembers().contains(players.getUniqueId())) {
+                                        if (players.getUniqueId().toString().equals(off.getUniqueId().toString())) {
+                                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                    ChatColor.GRAY + "You have been promoted to " + ChatColor.BLUE +
+                                                            temp.getType().getName() + ChatColor.GRAY + "."));
+                                        }
+                                        if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
+                                            players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                    ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                            " has promoted " +
+                                                            ChatColor.BLUE + off.getName() + ChatColor.GRAY + " to " +
+                                                            ChatColor.BLUE + temp.getType().getName() + ChatColor.GRAY +
+                                                            "."));
+                                        }
+                                    }
+                                }
+                            } else {
+                                switch (temp.getType()) {
+                                    case RECRUIT:
+                                        temp.setType(RankType.MEMBER);
+                                        break;
+                                    case MEMBER:
+                                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                ChatColor.RED +
+                                                        "You can not make other members an officer of the guild!"));
+                                    case OFFICER:
+                                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                ChatColor.RED + "You can not change the leader of the guild!"));
+                                        return true;
+                                    case LEADER:
+                                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                ChatColor.RED + "That member is already the leader of the guild!"));
+                                        return true;
+                                    default:
+                                        temp.setType(RankType.RECRUIT);
+                                        break;
+                                }
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.GRAY + "You have promoted " + ChatColor.BLUE + off.getName() +
+                                                ChatColor.GRAY + " to " + ChatColor.BLUE + temp.getType().getName() +
+                                                ChatColor.GRAY + "."));
+                                for (Player players : Bukkit.getOnlinePlayers()) {
+                                    if (guild.getMembers().contains(players.getUniqueId())) {
+                                        if (players.getUniqueId().toString().equals(off.getUniqueId().toString())) {
+                                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                    ChatColor.GRAY + "You have been promoted to " + ChatColor.BLUE +
+                                                            temp.getType().getName() + ChatColor.GRAY + "."));
+                                        }
+                                        if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
+                                            players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                    ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                            " has promoted " +
+                                                            ChatColor.BLUE + off.getName() + ChatColor.GRAY + " to " +
+                                                            ChatColor.BLUE + temp.getType().getName() + ChatColor.GRAY +
+                                                            "."));
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                        case "demote": {
+                            if (!inGuild) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(
+                                                        ChatColor.RED + "You're not currently in any guild!"));
+                                return true;
+                            }
+
+                            if (rank != RankType.LEADER && rank != RankType.OFFICER) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
+                                return true;
+                            }
+
+                            GuildModel guild = opGuild.get();
+
+                            String name = args[1];
+                            OfflinePlayer off = Bukkit.getOfflinePlayer(name);
+                            User temp = NEGuilds.getUserManager().getTempUser(off.getUniqueId());
+                            if (!guild.getMembers().contains(off.getUniqueId())) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG
+                                                .getServerMessage(ChatColor.RED + "That player is not in your guild!"));
+                            }
+                            if (rank == RankType.LEADER) {
+                                switch (temp.getType()) {
+                                    case RECRUIT:
+                                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                ChatColor.RED + "This player already has the lowest guild rank!"));
+                                        return true;
+                                    case MEMBER:
+                                        temp.setType(RankType.RECRUIT);
+                                        break;
+                                    case OFFICER:
+                                        temp.setType(RankType.MEMBER);
+                                        break;
+                                    case LEADER:
+                                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                ChatColor.RED + "That member is already the leader of the guild!"));
+                                        return true;
+                                    default:
+                                        temp.setType(RankType.RECRUIT);
+                                        break;
+                                }
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.GRAY + "You have demoted " + ChatColor.BLUE + off.getName() +
+                                                ChatColor.GRAY +
+                                                " to " + ChatColor.BLUE + temp.getType().getName() + ChatColor.GRAY +
+                                                "."));
+                                for (Player players : Bukkit.getOnlinePlayers()) {
+                                    if (guild.getMembers().contains(players.getUniqueId())) {
+                                        if (players.getUniqueId().toString().equals(off.getUniqueId().toString())) {
+                                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                    ChatColor.GRAY + "You have been demoted to " + ChatColor.BLUE +
+                                                            temp.getType().getName() + ChatColor.GRAY + "."));
+                                        }
+                                        if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
+                                            players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                    ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                            " has demoted " +
+                                                            ChatColor.BLUE + off.getName() + ChatColor.GRAY + " to " +
+                                                            ChatColor.BLUE + temp.getType().getName() + ChatColor.GRAY +
+                                                            "."));
+                                        }
+                                    }
+                                }
+                            } else {
+                                switch (temp.getType()) {
+                                    case RECRUIT:
+                                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                ChatColor.RED + "This player already has the lowest guild rank!"));
+                                        return true;
+                                    case MEMBER:
+                                        temp.setType(RankType.RECRUIT);
+                                        break;
+                                    case OFFICER:
+                                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                ChatColor.RED + "You can not demote other officers of the guild!"));
+                                        return true;
+                                    case LEADER:
+                                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                ChatColor.RED + "You can not demote the leader of the guild!"));
+                                        return true;
+                                    default:
+                                        temp.setType(RankType.RECRUIT);
+                                        break;
+                                }
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.GRAY + "You have demoted " + ChatColor.BLUE + off.getName() +
+                                                ChatColor.GRAY +
+                                                " to " + ChatColor.BLUE + temp.getType().getName() + ChatColor.GRAY +
+                                                "."));
+                                for (Player players : Bukkit.getOnlinePlayers()) {
+                                    if (guild.getMembers().contains(players.getUniqueId())) {
+                                        if (players.getUniqueId().toString().equals(off.getUniqueId().toString())) {
+                                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                    ChatColor.GRAY + "You have been demoted to " + ChatColor.BLUE +
+                                                            temp.getType().getName() + ChatColor.GRAY + "."));
+                                        }
+                                        if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
+                                            players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                    ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                            " has demoted " +
+                                                            ChatColor.BLUE + off.getName() + ChatColor.GRAY + " to " +
+                                                            ChatColor.BLUE + temp.getType().getName() + ChatColor.GRAY +
+                                                            "."));
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+                        }
                     }
-                    case "desc":
-                    case "description":
-                        if (!inGuild || !opGuild.isPresent()) {
-                            player.sendMessage(Lang.CHAT_TAG
-                                    .getServerMessage(ChatColor.RED + "You're not currently in any guild!"));
+                    break;
+                case 3:
+                    //NAME, RANK, DESC
+                    switch (args[0].toLowerCase()) {
+                        case "name": {
+                            if (!player.hasPermission("ne.admin")) {
+                                player.sendMessage(Lang.NO_PERM.getServerMessage());
+                                return true;
+                            }
+
+                            Optional<GuildModel> opGuildd = Optional.empty();
+                            if (NEGuilds.getGuildRegistry().guildExists(args[2])) {
+                                opGuildd = NEGuilds.getGuildRegistry().getGuild(args[2]);
+                            } else {
+                                if (NEGuilds.getUserManager()
+                                        .userExists(Bukkit.getOfflinePlayer(args[2]).getUniqueId())) {
+                                    opGuildd = NEGuilds.getUserManager()
+                                            .getTempUser(Bukkit.getOfflinePlayer(args[2]).getUniqueId()).getGuild();
+                                }
+                            }
+
+                            if (!opGuildd.isPresent()) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED + "That guild does not exist or that player is not in a guild!"));
+                                return true;
+                            }
+
+                            GuildModel guildd = opGuildd.get();
+
+                            String oldName = guildd.getName();
+                            String name = args[1];
+                            if (name.length() > 15) {
+                                player.sendMessage(
+                                        Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "That name is too long!"));
+                                return true;
+                            }
+
+                            if (NEGuilds.getGuildRegistry().guildExists(name)) {
+                                player.sendMessage(Lang.CHAT_TAG
+                                        .getServerMessage(ChatColor.RED + "A guild with that name already exists!"));
+                                return true;
+                            }
+
+                            guildd.setName(name);
+                            player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                    ChatColor.GRAY + "You have set the name of the guild " + guildd.getColor() +
+                                            oldName + ChatColor.GRAY +
+                                            " to " + guildd.getColor() + guildd.getName() + ChatColor.GRAY + "."));
+                            for (Player players : Bukkit.getOnlinePlayers()) {
+                                if (guildd.getMembers().contains(players.getUniqueId())) {
+                                    if (!players.getUniqueId().toString().equals(player.getUniqueId().toString())) {
+                                        players.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                        " has set the name of the guild to " + guildd.getColor() +
+                                                        guildd.getName() + ChatColor.GRAY + "."));
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                        case "rank": {
+                            if (!inGuild) {
+                                player.sendMessage(Lang.CHAT_TAG
+                                        .getServerMessage(ChatColor.RED + "You're not currently in any guild!"));
+                                return true;
+                            }
+
+                            if (rank != RankType.LEADER && rank != RankType.OFFICER) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED + "You must be an officer or leader of the guild to do this!"));
+                                return true;
+                            }
+                            String name = args[1];
+
+                            RankType type;
+                            type = RankType.valueOf(args[2].toUpperCase());
+
+                            if (type == RankType.LEADER) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                        ChatColor.RED + "To transfer leadership of the guild do /g leader [player]."));
+                                return true;
+                            }
+
+                            if (user.getType() == RankType.LEADER) {
+                                if (opGuild.get().getMembers().contains(Bukkit.getOfflinePlayer(name).getUniqueId())) {
+                                    User temp = NEGuilds.getUserManager()
+                                            .getTempUser(Bukkit.getOfflinePlayer(name).getUniqueId());
+                                    if (temp == user) {
+                                        player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED +
+                                                "You can not change your guild rank unless you transfer leadership of" +
+                                                 " the" +
+                                                " guild!"));
+                                        return true;
+                                    }
+
+                                    if (temp.getType() == RankType.LEADER) {
+                                        player.sendMessage(Lang.CHAT_TAG
+                                                .getServerMessage(
+                                                        ChatColor.RED + "That player is already the leader!"));
+                                        return true;
+                                    }
+                                    temp.setType(type);
+                                    if (Bukkit.getOnlinePlayers().contains(Bukkit.getPlayer(name))) {
+                                        Bukkit.getPlayer(name).sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                ChatColor.GRAY + "Your guild rank has been set to " + ChatColor.BLUE +
+                                                        type.getName() + ChatColor.GRAY + "."));
+                                    }
+                                    player.sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                            ChatColor.GRAY + "You have set " + ChatColor.BLUE +
+                                                    Bukkit.getOfflinePlayer(name).getName() + "'s " + ChatColor.GRAY +
+                                                    " guild rank to "
+                                                    + ChatColor.BLUE + type.getName() + ChatColor.GRAY + "."));
+                                    for (UUID uuid : opGuild.get().getMembers()) {
+                                        if (Bukkit.getOnlinePlayers().contains(Bukkit.getPlayer(uuid))) {
+                                            if (!uuid.toString().equals(player.getUniqueId().toString()) &&
+                                                    !uuid.toString()
+                                                            .equals(Bukkit.getOfflinePlayer(name).getUniqueId()
+                                                                    .toString())) {
+                                                Bukkit.getPlayer(uuid).sendMessage(Lang.CHAT_TAG.getServerMessage(
+                                                        ChatColor.BLUE + player.getName() + ChatColor.GRAY +
+                                                                " has set " +
+                                                                ChatColor.BLUE
+                                                                + Bukkit.getOfflinePlayer(name).getName() + "'s " +
+                                                                ChatColor.GRAY + " guild rank to " + ChatColor.BLUE +
+                                                                type.getName() + ChatColor.GRAY + "."));
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    player.sendMessage(Lang.CHAT_TAG
+                                            .getServerMessage(ChatColor.RED + "That player is not in the guild!"));
+                                    return true;
+                                }
+                            }
+                            break;
+                        }
+                        case "desc":
+                        case "description":
+                            if (!inGuild) {
+                                player.sendMessage(Lang.CHAT_TAG
+                                        .getServerMessage(ChatColor.RED + "You're not currently in any guild!"));
+                            }
+
+                            setDescription(player, opGuild.get(), args);
+                            break;
+                        default:
+                            player.sendMessage(Lang.SYNTAX_ERROR.getServerMessage());
+                            return true;
+                    }
+                    break;
+                default:
+                    if (args[0].toLowerCase().equals("desc") || args[0].toLowerCase().equals("description")) {
+                        if (!inGuild) {
+                            player.sendMessage(
+                                    Lang.CHAT_TAG
+                                            .getServerMessage(ChatColor.RED + "You're not currently in any guild!"));
                         }
 
                         setDescription(player, opGuild.get(), args);
-                        break;
-                    default:
+                    } else {
                         player.sendMessage(Lang.SYNTAX_ERROR.getServerMessage());
                         return true;
-                }
-            } else {
-                if (args[0].toLowerCase().equals("desc") || args[0].toLowerCase().equals("description")) {
-                    if (!inGuild || !opGuild.isPresent()) {
-                        player.sendMessage(
-                                Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're not currently in any guild!"));
                     }
-
-                    setDescription(player, opGuild.get(), args);
-                } else {
-                    player.sendMessage(Lang.SYNTAX_ERROR.getServerMessage());
-                    return true;
-                }
+                    break;
             }
         } else if (sender instanceof ConsoleCommandSender) {
             ConsoleCommandSender console = (ConsoleCommandSender) sender;
-            if (args.length > 0 && args[0].equalsIgnoreCase("purge")) { // TODO VERY UNSAFE
+            if (args.length == 1 && args[0].equalsIgnoreCase("purge")) { // TODO VERY UNSAFE
                 console.sendMessage(
                         Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "Let the purge begin!"));
                 NEGuilds.getGuildRegistry().purge();
                 return true;
-            } else if (args.length > 1 && args[0].equalsIgnoreCase("transferto")) {
+            } else if (args.length == 2 && args[0].equalsIgnoreCase("transferto")) {
                 if (NEGuilds.getGuildRegistry() instanceof MGuildRegistry) {
                     if (args[1].equalsIgnoreCase("file")) {
                         GuildRegistry guildMongo = NEGuilds.getGuildRegistry();
