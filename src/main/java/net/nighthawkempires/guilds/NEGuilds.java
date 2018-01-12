@@ -44,10 +44,12 @@ public class NEGuilds extends JavaPlugin {
         plugin = this;
 
         if (NECore.getSettings().mongoEnabled) {
-            String hostname = NECore.getSettings().mongoHostname;
+            String hostname = NECore.getSettings().mongoHostnameGuilds;
+            String username = NECore.getSettings().mongoUsernameGuilds;
+            String password = NECore.getSettings().mongoPasswordGuilds;
             ServerAddress address = new ServerAddress(hostname, 27017);
             MongoCredential credential =
-                    MongoCredential.createCredential("guilds", "ne_guilds", "xenMoose1".toCharArray());
+                    MongoCredential.createCredential(username, "ne_guilds", password.toCharArray());
             mongoDatabase =
                     new MongoClient(address, credential, new MongoClientOptions.Builder().build())
                             .getDatabase("ne_guilds");
