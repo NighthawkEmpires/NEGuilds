@@ -35,6 +35,8 @@ public class NEGuilds extends JavaPlugin {
 
     private static ChunkBoundaryTask boundaryTask;
 
+    private boolean enabled = false;
+
     public void onEnable() {
         if (NECore.getSettings().server != Server.SUR) {
             NECore.getLoggers().warn(this, "This plugin can only be ran on the Survival Server.");
@@ -43,7 +45,6 @@ public class NEGuilds extends JavaPlugin {
         }
         plugin = this;
 
-        boolean success = true;
         if (NECore.getSettings().mongoEnabledGuilds) {
             try {
                 String hostname = NECore.getSettings().mongoHostnameGuilds;
@@ -58,13 +59,14 @@ public class NEGuilds extends JavaPlugin {
                 guildRegistry = new MGuildRegistry(mongoDatabase, 0);
                 NECore.getLoggers().info("MongoDB enabled.");
             } catch (Exception oops) {
-                success = false;
                 oops.printStackTrace();
-                NECore.getLoggers().info("MongoDB connection failed.");
+                NECore.getLoggers().warn("MongoDB connection failed. Disabling plugin.");
+                Bukkit.getPluginManager().disablePlugin(this);
+                return;
             }
         }
 
-        if (!success || !NECore.getSettings().mongoEnabledGuilds) {
+        if (!NECore.getSettings().mongoEnabledGuilds) {
             guildRegistry = new FGuildRegistry(FileDirectory.GUILD_DIRECTORY.getDirectory().getPath());
             NECore.getLoggers().info("Json file saving enabled.");
         }
@@ -104,13 +106,18 @@ public class NEGuilds extends JavaPlugin {
         for (Player player : Bukkit.getOnlinePlayers()) {
             getUserManager().loadUser(new User(player.getUniqueId()));
         }
+
+        enabled = true;
     }
 
 
     public void onDisable() {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            NEGuilds.getUserManager().saveUser(NEGuilds.getUserManager().getUser(player.getUniqueId()));
+        if (enabled) {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                NEGuilds.getUserManager().saveUser(NEGuilds.getUserManager().getUser(player.getUniqueId()));
+            }
         }
+        enabled = false;
     }
 
     private void registerCommands() {
