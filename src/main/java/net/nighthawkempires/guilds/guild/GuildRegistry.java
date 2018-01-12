@@ -84,11 +84,11 @@ public interface GuildRegistry extends Registry<GuildModel> {
     }
 
     default boolean containsBannedWord(String str) {
-        /*for (String banned : BANNED_WORDS) {
+        for (String banned : NECore.getSettings().bannedWords) {
             if (str.toLowerCase().contains(banned.toLowerCase())) {
                 return true;
             }
-        }*/
+        }
 
         // TODO NECore setting
         return false;
