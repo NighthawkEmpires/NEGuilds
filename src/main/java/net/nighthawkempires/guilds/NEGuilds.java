@@ -43,7 +43,7 @@ public class NEGuilds extends JavaPlugin {
         }
         plugin = this;
 
-        if (NECore.getSettings().mongoEnabled) {
+        if (NECore.getSettings().mongoEnabledGuilds) {
             String hostname = NECore.getSettings().mongoHostnameGuilds;
             String username = NECore.getSettings().mongoUsernameGuilds;
             String password = NECore.getSettings().mongoPasswordGuilds;
