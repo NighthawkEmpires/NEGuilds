@@ -12,6 +12,8 @@ import net.nighthawkempires.guilds.guild.registry.*;
 import net.nighthawkempires.guilds.user.UserModel;
 import net.nighthawkempires.guilds.util.ChunkBoundaryUtil;
 import net.nighthawkempires.guilds.util.GuildMapUtil;
+import net.nighthawkempires.regions.NERegions;
+import net.nighthawkempires.regions.region.Region;
 import org.apache.commons.lang.math.NumberUtils;
 import org.bukkit.*;
 import org.bukkit.command.*;
@@ -171,6 +173,12 @@ public class GuildCommand implements CommandExecutor {
                             }
 
                             Chunk chunk = player.getLocation().getChunk();
+                            Region region = NERegions.getObeyRegion(player.getLocation());
+                            if (region != null && region.getChunks().contains(chunk)) {
+                                player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're not allowed to claim here," +
+                                        " due to part of the claimed area being in a protected region."));
+                            }
+
                             if (guild.getTerritory().contains(ChunkUtil.getChunkString(chunk))) {
                                 player.sendMessage(
                                         Lang.CHAT_TAG

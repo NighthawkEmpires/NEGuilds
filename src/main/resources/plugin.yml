@@ -4,7 +4,7 @@ version: 1.71_c
 description: Guilds plugin for Nighthawk Empires.
 authors: [NoneVale_, HQM]
 depend: [NECore]
-softdepend: [NEEssentials]
+softdepend: [NEEssentials, NERegions]
 commands:
   guilds:
     usage: /<command>

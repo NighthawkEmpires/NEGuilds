@@ -43,6 +43,12 @@
             <artifactId>essentials</artifactId>
             <version>1.0_a</version>
         </dependency>
+
+        <dependency>
+            <groupId>net.nighthawkempires</groupId>
+            <artifactId>regions</artifactId>
+            <version>1.0_a</version>
+        </dependency>
     </dependencies>
 
     <build>
