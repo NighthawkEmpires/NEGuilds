@@ -177,6 +177,7 @@ public class GuildCommand implements CommandExecutor {
                             if (region != null && region.getChunks().contains(chunk)) {
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're not allowed to claim here," +
                                         " due to part of the claimed area being in a protected region."));
+                                return true;
                             }
 
                             if (guild.getTerritory().contains(ChunkUtil.getChunkString(chunk))) {
