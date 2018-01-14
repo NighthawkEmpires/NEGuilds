@@ -223,7 +223,7 @@ public class GuildModel implements Model {
 
         relations = new ConcurrentHashMap<>();
         @SuppressWarnings("unchecked")
-        Map<String, String> relateMap = (Map) data.getRawNullable("relations");
+        Map<String, String> relateMap = (Map) data.getNullable("relations");
         if (relateMap != null) {
             for (Map.Entry<String, String> entry : relateMap.entrySet()) {
                 GuildRelation type = GuildRelation.valueOf(entry.getValue().toUpperCase());
@@ -233,7 +233,7 @@ public class GuildModel implements Model {
 
         if (data.isSection("home")) {
             DataSection homeData = data.getSectionNullable("home");
-            if (homeData != null && homeData.getKeys().size() == 6) {
+            if (homeData != null && homeData.keySet().size() == 6) {
                 World world = Bukkit.getWorld(homeData.getString("world"));
                 double x = homeData.getDouble("cord-x");
                 double y = homeData.getDouble("cord-y");
