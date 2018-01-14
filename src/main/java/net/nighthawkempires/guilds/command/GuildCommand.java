@@ -174,7 +174,7 @@ public class GuildCommand implements CommandExecutor {
 
                             Chunk chunk = player.getLocation().getChunk();
                             Region region = NERegions.getObeyRegion(player.getLocation());
-                            if (region != null && region.getChunks().contains(chunk)) {
+                            if (region != null && region.containsChunk(chunk)) {
                                 player.sendMessage(Lang.CHAT_TAG.getServerMessage(ChatColor.RED + "You're not allowed to claim here," +
                                         " due to part of the claimed area being in a protected region."));
                                 return true;
